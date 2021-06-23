@@ -4,7 +4,7 @@ import os
 import sys
 from easydict import EasyDict as edict
 
-from convert_pascalvoc_dataset.pascal_voc import PASCALVOC07
+from pascal_voc.pascal_voc import PASCALVOC07
 from argparse import ArgumentParser
 
 config = edict()
@@ -36,8 +36,10 @@ def parse_inputs():
 
 if __name__ == "__main__":
 
-    # !python build.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/data" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations" 0
+    # !python convert_pascalvoc_dataset/build.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/data" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations" 0
 
+    # OR test on local
+    # python convert_pascalvoc_dataset/build.py "../data" "../Annotations" 0 
     output_dir, annotation_dir, val_ratio = parse_inputs()
 
     if (not os.path.isdir(output_dir)):

@@ -74,22 +74,22 @@ def create_xml_file(anno_file, attrs):
         object_node = create_object_node(doc, attrs, box)
         root_node.appendChild(object_node)
 
-    write_xml_without_head(doc, anno_file)
+    # write_xml_without_head(doc, anno_file)
 
 
-def write_xml_without_head(doc, file):
+# def write_xml_without_head(doc, file):
 
-    tmpfile = open('tmp.xml', 'w')
-    doc.writexml(tmpfile, addindent=' ' * 4, newl='\n', encoding='utf-8')
-    tmpfile.close()
+#     tmpfile = open('tmp.xml', 'w')
+#     doc.writexml(tmpfile, addindent=' ' * 4, newl='\n', encoding='utf-8')
+#     tmpfile.close()
 
-    fin = open('tmp.xml')
-    fout = open(file, 'w')
-    lines = fin.readlines()
+#     fin = open('tmp.xml')
+#     fout = open(file, 'w')
+#     lines = fin.readlines()
 
-    for line in lines[1:]:
-        if line.split():
-            fout.writelines(line)
+#     for line in lines[1:]:
+#         if line.split():
+#             fout.writelines(line)
 
-    fin.close()
-    fout.close()
+#     fin.close()
+#     fout.close()
