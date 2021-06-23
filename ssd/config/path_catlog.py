@@ -52,6 +52,14 @@ class DatasetCatalog:
             "data_dir": "val2014",
             "ann_file": "annotations/instances_val2014.json"
         },
+        'my_custom_trainval': {
+            "data_dir": "data",
+            "split": "trainval"
+        },
+        'my_custom_test': {
+            "data_dir": "data",
+            "split": "test"
+        },
     }
 
     @staticmethod
@@ -78,5 +86,15 @@ class DatasetCatalog:
                 ann_file=os.path.join(coco_root, attrs["ann_file"]),
             )
             return dict(factory="COCODataset", args=args)
+        elif "my_custom" in name:
+            my_root = '/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/'
 
-        raise RuntimeError("Dataset not available: {}".format(name))
+            attrs = DatasetCatalog.DATASETS[name]
+            args = dict(
+                data_dir=os.path.join(my_root, attrs["data_dir"]),
+                split=attrs["split"],
+            )
+            
+            return dict(factory="MyDataset", args=args)
+
+        raise RuntimeError("Dataset not available: {}, you should have name 'coco' or 'voc' or 'my_custom' in for config file name".format(name))
