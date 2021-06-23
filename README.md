@@ -172,6 +172,14 @@ You will see a similar output:
 If you want to add your custom components, please see [DEVELOP_GUIDE.md](DEVELOP_GUIDE.md) for more details.
 
 1/ Chuyển đổi dữ liệu sang format PASCAL VOC:
+
++ Clone về source trên Google Colab:
+
+```text
+!git clone https://github.com/ontheskyl/SSD.git
+%cd SSD
+```
+
 + Chạy file data_preprocess.py:
 
 python data_preprocess.py <data_direction> <output_annotation_path> <test_ratio>
