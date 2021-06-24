@@ -1,0 +1,15 @@
+MODEL:
+  NUM_CLASSES: 5
+INPUT:
+  IMAGE_SIZE: 300
+DATASETS:
+  TRAIN: ("my_custom_trainval", )
+  TEST: ("my_custom_test", )
+SOLVER:
+  MAX_ITER: 72000
+  LR_STEPS: [48000, 60000]
+  GAMMA: 0.1
+  BATCH_SIZE: 32
+  LR: 1e-3
+
+OUTPUT_DIR: '/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/models/vgg_ssd300_my_dataset'
