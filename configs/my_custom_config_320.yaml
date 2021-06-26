@@ -25,6 +25,6 @@ SOLVER:
   LR: 1e-4
 TEST:
   NMS_THRESHOLD: 0.5
-  CONFIDENCE_THRESHOLD: 0.2
+  CONFIDENCE_THRESHOLD: 0.3
 
 OUTPUT_DIR: '/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/models/mobilenetv2_ssd320_my_dataset'
