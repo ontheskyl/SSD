@@ -25,8 +25,12 @@ def train_test_split(image_dir, test_ratio):
               if re.search(r'([a-zA-Z0-9\s_\\.\-\(\):])+(.jpg|.jpeg|.png)$', f)]
 
     random.shuffle(images)
-    images_train = images[:int(len(images) * (1 - test_ratio))]
-    images_test = images[int(len(images) * (1 - test_ratio)):]
+
+    batch_size = 32
+    
+    ratio = int(len(images) * (1 - test_ratio) // batch_size * batch_size)
+    images_train = images[:ratio]
+    images_test = images[ratio:]
 
     return images_train, images_test
 
