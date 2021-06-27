@@ -22,7 +22,7 @@ def evaluation(cfg, ckpt, distributed):
     device = torch.device(cfg.MODEL.DEVICE)
     model.to(device)
     checkpointer.load(ckpt, use_latest=ckpt is None)
-    do_evaluation(cfg, model, distributed)
+    do_evaluation(cfg, model, distributed, check_write_img=True)
 
 
 def main():

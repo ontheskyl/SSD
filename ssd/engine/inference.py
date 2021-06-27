@@ -10,7 +10,7 @@ from ssd.data.datasets.evaluation import evaluate
 
 from ssd.utils import dist_util, mkdir
 from ssd.utils.dist_util import synchronize, is_main_process
-
+import cv2
 
 def _accumulate_predictions_from_multiple_gpus(predictions_per_gpu):
     all_predictions = dist_util.all_gather(predictions_per_gpu)
@@ -49,7 +49,7 @@ def compute_on_dataset(model, data_loader, device):
     return results_dict
 
 
-def inference(model, data_loader, dataset_name, device, output_folder=None, use_cached=False, **kwargs):
+def inference(model, data_loader, dataset_name, device, output_folder=None, use_cached=False, allow_write_img = False, **kwargs):
     dataset = data_loader.dataset
     logger = logging.getLogger("SSD.inference")
     logger.info("Evaluating {} dataset({} images):".format(dataset_name, len(dataset)))
@@ -64,11 +64,35 @@ def inference(model, data_loader, dataset_name, device, output_folder=None, use_
         return
     if output_folder:
         torch.save(predictions, predictions_path)
+
+    if (allow_write_img):
+        if (not os.path.isdir("eval_results")):
+            os.mkdir("eval_results")
+
+        LABEL = ["", "top_left", "top_right", "bottom_right", "bottom_left"]
+        for i in range(len(dataset)):
+            image_id, annotation = dataset.get_annotation(i)
+            img = dataset._read_image(image_id)
+
+            img_info = dataset.get_img_info(i)
+            prediction = predictions[i]
+            boxes, labels, scores = prediction['boxes'], prediction['labels'], prediction['scores']
+
+            for i in range(len(boxes)):
+                b1 = int(max(boxes[i][0] * img_info["width"] / 320, 0))
+                b2 = int(max(boxes[i][1] * img_info["height"] / 320, 0))
+                b3 = int(min(boxes[i][2] * img_info["width"] / 320, img_info["width"]))
+                b4 = int(min(boxes[i][3] * img_info["height"] / 320, img_info["height"]))
+                img = cv2.rectangle(img, (b1, b2), (b3, b4), (255, 0, 0), 2)
+                img = cv2.putText(img, "{}\n{}".format(LABEL[labels[i]], scores[i]), (b1, b2), cv2.FONT_HERSHEY_SIMPLEX, 
+                    0.5, (0, 0, 255), 2, cv2.LINE_AA)
+
+            cv2.imwrite(os.path.join("eval_results", "{}.jpg".format(image_id)), img)
     return evaluate(dataset=dataset, predictions=predictions, output_dir=output_folder, **kwargs)
 
 
 @torch.no_grad()
-def do_evaluation(cfg, model, distributed, **kwargs):
+def do_evaluation(cfg, model, distributed, check_write_img = False, **kwargs):
     if isinstance(model, torch.nn.parallel.DistributedDataParallel):
         model = model.module
     model.eval()
@@ -79,6 +103,6 @@ def do_evaluation(cfg, model, distributed, **kwargs):
         output_folder = os.path.join(cfg.OUTPUT_DIR, "inference", dataset_name)
         if not os.path.exists(output_folder):
             mkdir(output_folder)
-        eval_result = inference(model, data_loader, dataset_name, device, output_folder, **kwargs)
+        eval_result = inference(model, data_loader, dataset_name, device, output_folder, allow_write_img=check_write_img, **kwargs)
         eval_results.append(eval_result)
     return eval_results
