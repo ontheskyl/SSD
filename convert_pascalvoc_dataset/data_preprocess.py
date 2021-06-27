@@ -53,23 +53,11 @@ def parse_annotation(data_dir, image_list, output_annotation):
         for ann in annotations:
             label = ann["label"]
             point = ann["points"][0]
-            x1 = int(max(point[0] - 20, 0))
-            x2 = int(min(point[0] + 20, width - 1))
-            y1 = int(max(point[1] - 20, 0))
-            y2 = int(min(point[1] + 20, height - 1))
+            x1 = int(max(point[0] - 25, 0))
+            x2 = int(min(point[0] + 25, width - 1))
+            y1 = int(max(point[1] - 25, 0))
+            y2 = int(min(point[1] + 25, height - 1))
 
-            if (label == "top_left"):
-                x2 += 15
-                y2 += 15
-            if (label == "top_right"):
-                x1 -= 15
-                y2 += 15
-            if (label == "bottom_left"):
-                x2 += 15
-                y1 -= 15
-            if (label == "bottom_right"):
-                x1 -= 15
-                y1 -= 15
             str_data.extend([label, str(x1), str(y1), str(x2), str(y2)])
 
         str_data = ",".join(str_data)
