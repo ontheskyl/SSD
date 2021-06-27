@@ -84,8 +84,10 @@ def inference(model, data_loader, dataset_name, device, output_folder=None, use_
                 b3 = int(min(boxes[i][2] * img_info["width"] / 320, img_info["width"]))
                 b4 = int(min(boxes[i][3] * img_info["height"] / 320, img_info["height"]))
                 img = cv2.rectangle(img, (b1, b2), (b3, b4), (255, 0, 0), 2)
-                img = cv2.putText(img, "{}\n{}".format(LABEL[labels[i]], scores[i]), (b1, b2), cv2.FONT_HERSHEY_SIMPLEX, 
-                    0.5, (0, 0, 255), 2, cv2.LINE_AA)
+                img = cv2.putText(img, "{}".format(LABEL[labels[i]]), (b1, b2 - 30), cv2.FONT_HERSHEY_SIMPLEX, 
+                    0.8, (0, 0, 255), 2, cv2.LINE_AA)
+                img = cv2.putText(img, "{}".format(round(float(scores[i]), 2)), (b1, b2 - 5), cv2.FONT_HERSHEY_SIMPLEX, 
+                    0.8, (0, 0, 255), 2, cv2.LINE_AA)
 
             cv2.imwrite(os.path.join("eval_results", "{}.jpg".format(image_id)), img)
     return evaluate(dataset=dataset, predictions=predictions, output_dir=output_folder, **kwargs)
