@@ -18,7 +18,7 @@ SOLVER:
   MAX_ITER: 30000
   LR_STEPS: [20000, 25000]
   GAMMA: 0.1
-  BATCH_SIZE: 32
+  BATCH_SIZE: 24
   LR: 1e-3
 
 OUTPUT_DIR: '/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/models/vgg_ssd512_30k_4cls'
