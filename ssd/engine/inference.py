@@ -49,7 +49,7 @@ def compute_on_dataset(model, data_loader, device):
     return results_dict
 
 
-def inference(model, data_loader, dataset_name, device, output_folder=None, use_cached=False, allow_write_img = False, **kwargs):
+def inference(model, data_loader, dataset_name, device, output_folder=None, use_cached=False, allow_write_img = False, image_size = 512, **kwargs):
     dataset = data_loader.dataset
     logger = logging.getLogger("SSD.inference")
     logger.info("Evaluating {} dataset({} images):".format(dataset_name, len(dataset)))
@@ -79,10 +79,10 @@ def inference(model, data_loader, dataset_name, device, output_folder=None, use_
             boxes, labels, scores = prediction['boxes'], prediction['labels'], prediction['scores']
 
             for i in range(len(boxes)):
-                b1 = int(max(boxes[i][0] * img_info["width"] / 320, 0))
-                b2 = int(max(boxes[i][1] * img_info["height"] / 320, 0))
-                b3 = int(min(boxes[i][2] * img_info["width"] / 320, img_info["width"]))
-                b4 = int(min(boxes[i][3] * img_info["height"] / 320, img_info["height"]))
+                b1 = int(max(boxes[i][0] * img_info["width"] / image_size, 0))
+                b2 = int(max(boxes[i][1] * img_info["height"] / image_size, 0))
+                b3 = int(min(boxes[i][2] * img_info["width"] / image_size, img_info["width"]))
+                b4 = int(min(boxes[i][3] * img_info["height"] / image_size, img_info["height"]))
                 img = cv2.rectangle(img, (b1, b2), (b3, b4), (255, 0, 0), 2)
                 img = cv2.putText(img, "{}".format(LABEL[labels[i]]), (b1, b2 - 30), cv2.FONT_HERSHEY_SIMPLEX, 
                     0.8, (0, 0, 255), 2, cv2.LINE_AA)
@@ -105,6 +105,6 @@ def do_evaluation(cfg, model, distributed, check_write_img = False, **kwargs):
         output_folder = os.path.join(cfg.OUTPUT_DIR, "inference", dataset_name)
         if not os.path.exists(output_folder):
             mkdir(output_folder)
-        eval_result = inference(model, data_loader, dataset_name, device, output_folder, allow_write_img=check_write_img, **kwargs)
+        eval_result = inference(model, data_loader, dataset_name, device, output_folder, allow_write_img=check_write_img, image_size = cfg.INPUT.IMAGE_SIZE, **kwargs)
         eval_results.append(eval_result)
     return eval_results
