@@ -3,6 +3,7 @@ import os
 import time
 
 import torch
+import cv2
 from PIL import Image
 from vizer.draw import draw_boxes
 
@@ -42,13 +43,36 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
     cpu_device = torch.device("cpu")
     transforms = build_transforms(cfg, is_train=False)
     model.eval()
+
+    pixel_border = 40
+
     for i, image_path in enumerate(image_paths):
         start = time.time()
         image_name = os.path.basename(image_path)
 
-        image = np.array(Image.open(image_path).convert("RGB"))
-        height, width = image.shape[:2]
-        images = transforms(image)[0].unsqueeze(0)
+        image = cv2.imread(image_path)
+
+        #COLOR 
+        lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+        lab_planes = cv2.split(lab)
+        clahe = cv2.createCLAHE(clipLimit=2.0,tileGridSize=(8,8))
+        lab_planes[0] = clahe.apply(lab_planes[0])
+        lab = cv2.merge(lab_planes)
+        clahe_bgr = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+
+        #INPAINT + CLAHE
+        grayimg = cv2.cvtColor(clahe_bgr, cv2.COLOR_BGR2GRAY)
+        mask = cv2.threshold(grayimg , 220, 255, cv2.THRESH_BINARY)[1]
+        clah_inpaint_img = cv2.inpaint(image, mask, 0.1, cv2.INPAINT_TELEA)
+
+        dst = cv2.detailEnhance(clah_inpaint_img, sigma_s=10, sigma_r=0.15)
+        dst= cv2.copyMakeBorder(dst, pixel_border, pixel_border, pixel_border, pixel_border, cv2.BORDER_CONSTANT,value=(255,255,255))
+
+        
+        dst = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
+
+        height, width = dst.shape[:2]
+        images = transforms(dst)[0].unsqueeze(0)
         load_time = time.time() - start
 
         start = time.time()
@@ -71,6 +95,12 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
             ]
         )
         print('({:04d}/{:04d}) {}: {}'.format(i + 1, len(image_paths), image_name, meters))
+
+        for i in range(len(boxes)):
+            for k in range(len(boxes[i])):
+                boxes[i][k] -= pixel_border
+                if boxes[i][k] < 0:
+                    boxes[i][k] = 0
 
         drawn_image = draw_boxes(image, boxes, labels, scores, class_names).astype(np.uint8)
         Image.fromarray(drawn_image).save(os.path.join(output_dir, image_name))
