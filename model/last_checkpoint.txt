@@ -1,0 +1,1 @@
+/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/SSD/model/model_045000.pth
