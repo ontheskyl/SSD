@@ -7,7 +7,7 @@ from PIL import Image
 from vizer.draw import draw_boxes
 
 from ssd.config import cfg
-from ssd.data.datasets import COCODataset, VOCDataset
+from ssd.data.datasets import COCODataset, VOCDataset, MyDataset
 import argparse
 import numpy as np
 
@@ -23,6 +23,8 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         class_names = VOCDataset.class_names
     elif dataset_type == 'coco':
         class_names = COCODataset.class_names
+    elif dataset_type == "custom":
+        class_names = MyDataset.class_names
     else:
         raise NotImplementedError('Not implemented now.')
     device = torch.device(cfg.MODEL.DEVICE)
@@ -87,7 +89,7 @@ def main():
     parser.add_argument("--score_threshold", type=float, default=0.7)
     parser.add_argument("--images_dir", default='demo', type=str, help='Specify a image dir to do prediction.')
     parser.add_argument("--output_dir", default='demo/result', type=str, help='Specify a image dir to save predicted images.')
-    parser.add_argument("--dataset_type", default="voc", type=str, help='Specify dataset type. Currently support voc and coco.')
+    parser.add_argument("--dataset_type", default="custom", type=str, help='Specify dataset type. Currently support voc and coco.')
 
     parser.add_argument(
         "opts",
