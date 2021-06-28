@@ -6,6 +6,7 @@ from tqdm import tqdm
 import random
 import json
 from argparse import ArgumentParser
+import math
 
 def parse_inputs():
     """ Parser function to take care of the inputs """
@@ -50,13 +51,15 @@ def parse_annotation(data_dir, image_list, output_annotation):
         width = data["imageWidth"]
         height = data["imageHeight"]
 
+        thresh = math.log2(width * height) * 1.8
+
         for ann in annotations:
             label = ann["label"]
             point = ann["points"][0]
-            x1 = int(max(point[0] - 25, 0))
-            x2 = int(min(point[0] + 25, width - 1))
-            y1 = int(max(point[1] - 25, 0))
-            y2 = int(min(point[1] + 25, height - 1))
+            x1 = int(max(point[0] - thresh, 0))
+            x2 = int(min(point[0] + thresh, width - 1))
+            y1 = int(max(point[1] - thresh, 0))
+            y2 = int(min(point[1] + thresh, height - 1))
 
             str_data.extend([label, str(x1), str(y1), str(x2), str(y2)])
 
