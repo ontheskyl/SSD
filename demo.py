@@ -50,7 +50,7 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         start = time.time()
         image_name = os.path.basename(image_path)
 
-        image = cv2.imread(image_path)
+        image = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
 
         #COLOR 
         lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
@@ -65,6 +65,7 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         mask = cv2.threshold(grayimg , 220, 255, cv2.THRESH_BINARY)[1]
         clah_inpaint_img = cv2.inpaint(image, mask, 0.1, cv2.INPAINT_TELEA)
 
+        # Detail enhance and create border
         dst = cv2.detailEnhance(clah_inpaint_img, sigma_s=10, sigma_r=0.15)
         dst= cv2.copyMakeBorder(dst, pixel_border, pixel_border, pixel_border, pixel_border, cv2.BORDER_CONSTANT,value=(255,255,255))
 

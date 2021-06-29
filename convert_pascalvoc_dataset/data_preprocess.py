@@ -8,6 +8,8 @@ import json
 from argparse import ArgumentParser
 import math
 
+ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif"]
+
 def parse_inputs():
     """ Parser function to take care of the inputs """
     parser = ArgumentParser(description='Argument: python data_preprocess.py <data_direction> <output_annotation_path> <test_ratio>')
@@ -38,10 +40,11 @@ def train_test_split(image_dir, test_ratio):
 
 def parse_annotation(data_dir, image_list, output_annotation):
 
-    json_file = [f.replace(".jpg", ".json") for f in image_list]
+    for tail_img in ALLOWED_EXTENSIONS:
+        json_file = [f.replace(tail_img, ".json") for f in image_list if tail_img in f]
     
     result_str = []
-    print("Getting Annotations")
+    print("Getting Annotations...")
     for f in tqdm(json_file):
         str_data = []
         fi = open(os.path.join(data_dir, f), "r")
