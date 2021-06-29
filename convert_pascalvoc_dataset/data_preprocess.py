@@ -40,8 +40,9 @@ def train_test_split(image_dir, test_ratio):
 
 def parse_annotation(data_dir, image_list, output_annotation):
 
+    json_file = []
     for tail_img in ALLOWED_EXTENSIONS:
-        json_file = [f.replace(tail_img, ".json") for f in image_list if tail_img in f]
+        json_file.extend([f.replace(tail_img, ".json") for f in image_list if tail_img in f])
     
     result_str = []
     print("Getting Annotations...")

@@ -171,7 +171,7 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
             print("Please take a photo again, number of detected corners is:", len(boxes))
 
 
-        output_dir_crop = os.path.join(images_dir, 'crop')
+        output_dir_crop = os.path.join(output_dir.split('/')[0], 'crop')
         cv2.imwrite(os.path.join(output_dir_crop, image_name), crop)
 
 
