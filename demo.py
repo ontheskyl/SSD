@@ -16,6 +16,7 @@ from ssd.data.transforms import build_transforms
 from ssd.modeling.detector import build_detection_model
 from ssd.utils import mkdir
 from ssd.utils.checkpoint import CheckPointer
+import collections
 
 
 def get_center_bbox(box):
@@ -28,6 +29,7 @@ def perspective_transform(image, source_points):
     dest_points = np.float32([[0, 0], [500, 0], [500, 300], [0, 300]])
     M = cv2.getPerspectiveTransform(source_points, dest_points)
     dst = cv2.warpPerspective(image, M, (500, 300))
+    cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
     return dst
 
 
@@ -63,7 +65,10 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
     print('Loaded weights from {}'.format(weight_file))
 
     image_paths = glob.glob(os.path.join(images_dir, '*.jpg'))
-    mkdir(output_dir)
+    result_output_dir = os.path.join(output_dir, "result")
+    mkdir(result_output_dir)
+    output_dir_crop = os.path.join(output_dir, 'crop')
+    mkdir(output_dir_crop)
 
     cpu_device = torch.device("cpu")
     transforms = build_transforms(cfg, is_train=False)
@@ -71,31 +76,40 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
 
     pixel_border = 40
 
+    count_true = 0
+    count_error_1 = 0
+    count_error_more_2 = 0
+
+    error_images = []
+    dup_images = []
+
     for i, image_path in enumerate(image_paths):
         start = time.time()
         image_name = os.path.basename(image_path)
 
         image = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
+        image_show = image.copy()
+        cv2.cvtColor(image_show, cv2.COLOR_BGR2RGB)
+        # #COLOR 
+        # lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+        # lab_planes = cv2.split(lab)
+        # clahe = cv2.createCLAHE(clipLimit=2.0,tileGridSize=(8,8))
+        # lab_planes[0] = clahe.apply(lab_planes[0])
+        # lab = cv2.merge(lab_planes)
+        # clahe_bgr = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
 
-        #COLOR 
-        lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-        lab_planes = cv2.split(lab)
-        clahe = cv2.createCLAHE(clipLimit=2.0,tileGridSize=(8,8))
-        lab_planes[0] = clahe.apply(lab_planes[0])
-        lab = cv2.merge(lab_planes)
-        clahe_bgr = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
-
-        #INPAINT + CLAHE
-        grayimg = cv2.cvtColor(clahe_bgr, cv2.COLOR_BGR2GRAY)
-        mask = cv2.threshold(grayimg , 220, 255, cv2.THRESH_BINARY)[1]
-        clah_inpaint_img = cv2.inpaint(image, mask, 0.1, cv2.INPAINT_TELEA)
+        # #INPAINT + CLAHE
+        # grayimg = cv2.cvtColor(clahe_bgr, cv2.COLOR_BGR2GRAY)
+        # mask = cv2.threshold(grayimg , 220, 255, cv2.THRESH_BINARY)[1]
+        # clah_inpaint_img = cv2.inpaint(image, mask, 0.1, cv2.INPAINT_TELEA)
 
         # Detail enhance and create border
-        dst = cv2.detailEnhance(clah_inpaint_img, sigma_s=10, sigma_r=0.15)
+        dst = cv2.detailEnhance(image, sigma_s=10, sigma_r=0.15)
         dst= cv2.copyMakeBorder(dst, pixel_border, pixel_border, pixel_border, pixel_border, cv2.BORDER_CONSTANT,value=(255,255,255))
 
-        
         dst = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
+        dst = Image.fromarray(dst)
+        dst = np.asarray(dst)
 
         height, width = dst.shape[:2]
         images = transforms(dst)[0].unsqueeze(0)
@@ -127,53 +141,85 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
                 boxes[i][k] -= pixel_border
                 if boxes[i][k] < 0:
                     boxes[i][k] = 0
+                    
+        list_duplicate = [item for item, count in collections.Counter(labels).items() if count > 1]
+        
+        for dup in list_duplicate:
+            list_indices = [i for (i, item) in enumerate(labels) if item == dup]
+            max_conf_indice = list_indices[0]
+            for indice in list_indices:
+                if scores[indice] > scores[max_conf_indice]:
+                    max_conf_indice = indice
+                    
+            list_indices.remove(max_conf_indice)
+            for index in sorted(list_indices, reverse=True):
+                labels = np.delete(labels, index)
+                scores = np.delete(scores, index)
+                boxes = np.delete(boxes, index, 0)
+                
+        
+        if (len(list_duplicate) != 0):
+            dup_images.append(image_name)
+        
 
-        drawn_image = draw_boxes(image, boxes, labels, scores, class_names).astype(np.uint8)
-        Image.fromarray(drawn_image).save(os.path.join(output_dir, image_name))
+        drawn_image = draw_boxes(image_show, boxes, labels, scores, class_names).astype(np.uint8)
+        # Image.fromarray(drawn_image).save(os.path.join(output_dir, image_name))
+        cv2.imwrite(os.path.join(result_output_dir, image_name), drawn_image)
 
         # Crop image
         pair = zip(labels, boxes)
         sort_pair = sorted(pair)
         boxes = [element for _, element in sort_pair]
         labels = [element for element, _ in sort_pair]
-        image_cv2 = cv2.imread(image_path)
-        cv2.cvtColor(image_cv2, cv2.COLOR_BGR2RGB)
+        
+        cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        crop = None
         if len(boxes) == 4:
-            crop = align_image(image_cv2, boxes[0], boxes[1], boxes[2], boxes[3])
+            count_true += 1
+            crop = align_image(image, boxes[0], boxes[1], boxes[2], boxes[3])
         elif len(boxes) == 3:
             # Find fourth missed corner
             thresh = 0
+            count_error_1 += 1
             if 1 not in labels:
                 midpoint = np.add(boxes[0], boxes[2]) / 2
                 y = int(2 * midpoint[1] - boxes[1][1] + thresh)
                 x = int(2 * midpoint[0] - boxes[1][0] + thresh)
                 TL = np.array([x, y, x, y])
-                crop = align_image(image_cv2, TL, boxes[0], boxes[1], boxes[2])
+                crop = align_image(image, TL, boxes[0], boxes[1], boxes[2])
             elif 2 not in labels:
                 midpoint = np.add(boxes[0], boxes[1]) / 2
                 y = int(2 * midpoint[1] - boxes[2][1] + thresh)
                 x = int(2 * midpoint[0] - boxes[2][0] + thresh)
                 TR = np.array([x, y, x, y])
-                crop = align_image(image_cv2, boxes[0], TR, boxes[1], boxes[2])
+                crop = align_image(image, boxes[0], TR, boxes[1], boxes[2])
             elif 3 not in labels:
                 midpoint = np.add(boxes[2], boxes[1]) / 2
                 y = int(2 * midpoint[1] - boxes[0][1] + thresh)
                 x = int(2 * midpoint[0] - boxes[0][0] + thresh)
                 BR = np.array([x, y, x, y])
-                crop = align_image(image_cv2, boxes[0], boxes[1], BR, boxes[2])
+                crop = align_image(image, boxes[0], boxes[1], BR, boxes[2])
             elif 4 not in labels:
                 midpoint = np.add(boxes[0], boxes[2]) / 2
                 y = int(2 * midpoint[1] - boxes[1][1] + thresh)
                 x = int(2 * midpoint[0] - boxes[1][0] + thresh)
                 BL = np.array([x, y, x, y])
-                crop = align_image(image_cv2, boxes[0], boxes[1], boxes[2], BL)
+                crop = align_image(image, boxes[0], boxes[1], boxes[2], BL)
         else:
+            count_error_more_2 += 1
+            error_images.append(image_name)
             print("Please take a photo again, number of detected corners is:", len(boxes))
+            continue
 
 
-        output_dir_crop = os.path.join(output_dir.split('/')[0], 'crop')
         cv2.imwrite(os.path.join(output_dir_crop, image_name), crop)
 
+    print("Number of true images: {}".format(count_true))
+    print("Number of 3 corner images: {}".format(count_error_1))
+    print("Number of 2 corner images: {}".format(count_error_more_2))
+
+    print("Error Images: {}".format(error_images))
+    print("Duplicate Images: {}".format(dup_images))
 
 
 def main():
