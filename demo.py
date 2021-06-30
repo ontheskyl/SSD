@@ -134,6 +134,7 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
     count_error_more_2 = 0
 
     error_images = []
+    images_missing_1_corner = []
 
     for i, image_path in enumerate(image_paths):
         start = time.time()
@@ -206,6 +207,7 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         elif len(boxes) == 3:
             # Find fourth missed corner
             thresh = 0
+            images_missing_1_corner.append(image_name)
             count_error_1 += 1
             if 1 not in labels:
                 midpoint = np.add(boxes[0], boxes[2]) / 2
@@ -244,6 +246,7 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
     print("Number of 3 corner images: {}".format(count_error_1))
     print("Number of 2 corner images: {}".format(count_error_more_2))
 
+    print("Image have 3 corners: {}".format(images_missing_1_corner))
     print("Error Images: {}".format(error_images))
 
 
