@@ -19,8 +19,8 @@ from ssd.utils.checkpoint import CheckPointer
 import collections
 
 
-def distance_two_points(x1, y1, x2, y2):
-    return np.sqrt(np.power(x1 - x2, 2) + np.power(y1 - y2, 2))
+def distance_two_points(point_1, point_2):
+    return np.sqrt(np.power(point_1[0] - point_2[0], 2) + np.power(point_1[1] - point_2[1], 2))
 
 def get_center_bbox(box):
     a = (box[0] + box[2]) / 2
@@ -36,11 +36,27 @@ def perspective_transform(image, source_points):
     return dst
 
 
-def align_image(image, top_left, top_right, bottom_right, bottom_left):
+def align_image(image, top_left, top_right, bottom_right, bottom_left, expand_alignment = False):
     top_left_point = get_center_bbox(top_left)
     top_right_point = get_center_bbox(top_right)
     bottom_right_point = get_center_bbox(bottom_right)
     bottom_left_point = get_center_bbox(bottom_left)
+
+    if (expand_alignment):
+        x_val = (top_left_point[0] + top_right_point[0] + bottom_right_point[0] + bottom_left_point[0]) / 4
+        y_val = (top_left_point[1] + top_right_point[1] + bottom_right_point[1] + bottom_left_point[1]) / 4
+        center_point = np.array([x_val, y_val])
+
+        distance_from_corner_to_center = distance_two_points(top_left_point, center_point)
+        increase_pixel = distance_from_corner_to_center / 10
+        increase_ratio = (increase_pixel + distance_from_corner_to_center) / distance_from_corner_to_center
+
+        top_left_point = (top_left_point - center_point) * increase_ratio + center_point
+        top_right_point = (top_right_point - center_point) * increase_ratio + center_point
+        bottom_right_point = (bottom_right_point - center_point) * increase_ratio + center_point
+        bottom_left_point = (bottom_left_point - center_point) * increase_ratio + center_point
+
+
     source_points = np.float32(
         [top_left_point, top_right_point, bottom_right_point, bottom_left_point]
     )
@@ -158,23 +174,11 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
                 scores = np.delete(scores, index)
                 boxes = np.delete(boxes, index, 0)
 
-        increase_size_bounding_box = 5
 
         for i in range(len(boxes)):
-            center = get_center_bbox(boxes[i])
-
             for k in range(len(boxes[i])):
-                boxes[i][k] -= pixel_border
                 boxes[i][k] *= ratio_resize
-            
-            # transform to origin coordinate and increase ratio
-            distance_from_bb_corner_to_center = distance_two_points(boxes[i][0], boxes[i][1], center[0], center[1])
-            ratio_increase = (increase_size_bounding_box + distance_from_bb_corner_to_center) / distance_from_bb_corner_to_center
-            boxes[i][0] = (boxes[i][0] - center[0]) * ratio_increase + center[0]
-            boxes[i][1] = (boxes[i][1] - center[1]) * ratio_increase + center[1]
-            boxes[i][2] = (boxes[i][2] - center[0]) * ratio_increase + center[0]
-            boxes[i][3] = (boxes[i][3] - center[1]) * ratio_increase + center[1]
-            
+                boxes[i][k] -= pixel_border
             
         
         if (len(list_duplicate) != 0):
@@ -194,7 +198,7 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         crop = None
         if len(boxes) == 4:
             count_true += 1
-            crop = align_image(image, boxes[0], boxes[1], boxes[2], boxes[3])
+            crop = align_image(image, boxes[0], boxes[1], boxes[2], boxes[3], True)
         elif len(boxes) == 3:
             # Find fourth missed corner
             thresh = 0
@@ -204,25 +208,25 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
                 y = int(2 * midpoint[1] - boxes[1][1] + thresh)
                 x = int(2 * midpoint[0] - boxes[1][0] + thresh)
                 TL = np.array([x, y, x, y])
-                crop = align_image(image, TL, boxes[0], boxes[1], boxes[2])
+                crop = align_image(image, TL, boxes[0], boxes[1], boxes[2], True)
             elif 2 not in labels:
                 midpoint = np.add(boxes[0], boxes[1]) / 2
                 y = int(2 * midpoint[1] - boxes[2][1] + thresh)
                 x = int(2 * midpoint[0] - boxes[2][0] + thresh)
                 TR = np.array([x, y, x, y])
-                crop = align_image(image, boxes[0], TR, boxes[1], boxes[2])
+                crop = align_image(image, boxes[0], TR, boxes[1], boxes[2], True)
             elif 3 not in labels:
                 midpoint = np.add(boxes[2], boxes[1]) / 2
                 y = int(2 * midpoint[1] - boxes[0][1] + thresh)
                 x = int(2 * midpoint[0] - boxes[0][0] + thresh)
                 BR = np.array([x, y, x, y])
-                crop = align_image(image, boxes[0], boxes[1], BR, boxes[2])
+                crop = align_image(image, boxes[0], boxes[1], BR, boxes[2], True)
             elif 4 not in labels:
                 midpoint = np.add(boxes[0], boxes[2]) / 2
                 y = int(2 * midpoint[1] - boxes[1][1] + thresh)
                 x = int(2 * midpoint[0] - boxes[1][0] + thresh)
                 BL = np.array([x, y, x, y])
-                crop = align_image(image, boxes[0], boxes[1], boxes[2], BL)
+                crop = align_image(image, boxes[0], boxes[1], boxes[2], BL, True)
         else:
             count_error_more_2 += 1
             error_images.append(image_name)
