@@ -19,6 +19,9 @@ from ssd.utils.checkpoint import CheckPointer
 import collections
 
 
+pixel_border = 40
+
+
 def distance_two_points(point_1, point_2):
     return np.sqrt(np.power(point_1[0] - point_2[0], 2) + np.power(point_1[1] - point_2[1], 2))
 
@@ -64,6 +67,38 @@ def align_image(image, top_left, top_right, bottom_right, bottom_left, expand_al
     return crop
 
 
+def image_processing(image):
+    # INPAINT
+    grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    mask = cv2.threshold(grayimg , 230, 255, cv2.THRESH_BINARY)[1]
+    image = cv2.inpaint(image, mask, 0.1, cv2.INPAINT_TELEA)
+
+    # Detail enhance and create border
+    dst = cv2.detailEnhance(image, sigma_s=10, sigma_r=0.15)
+    dst= cv2.copyMakeBorder(dst, pixel_border, pixel_border, pixel_border, pixel_border, cv2.BORDER_CONSTANT,value=(255,255,255))
+
+    dst = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
+    dst = Image.fromarray(dst)
+    return np.asarray(dst)
+
+def process_duplicate_labels(labels, scores, boxes):
+    list_duplicate = [item for item, count in collections.Counter(labels).items() if count > 1]
+        
+    for dup in list_duplicate:
+        list_indices = [i for (i, item) in enumerate(labels) if item == dup]
+        max_conf_indice = list_indices[0]
+        for indice in list_indices:
+            if scores[indice] > scores[max_conf_indice]:
+                max_conf_indice = indice
+                
+        list_indices.remove(max_conf_indice)
+        for index in sorted(list_indices, reverse=True):
+            labels = np.delete(labels, index)
+            scores = np.delete(scores, index)
+            boxes = np.delete(boxes, index, 0)
+
+    return labels, scores, boxes
+
 @torch.no_grad()
 def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
     if dataset_type == "voc":
@@ -93,14 +128,12 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
     transforms = build_transforms(cfg, is_train=False)
     model.eval()
 
-    pixel_border = 40
 
     count_true = 0
     count_error_1 = 0
     count_error_more_2 = 0
 
     error_images = []
-    dup_images = []
 
     for i, image_path in enumerate(image_paths):
         start = time.time()
@@ -115,24 +148,13 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         ratio_resize = 1
         if (width * height > 6 * 10**6):
             ratio_resize = 4
-            image = cv2.resize(image, (int(width / ratio_resize), int(height / ratio_resize)))
         elif (width * height > 8 * 10**5):
             ratio_resize = 1.5
-            image = cv2.resize(image, (int(width / ratio_resize), int(height / ratio_resize)))
+        
+        image = cv2.resize(image, (int(width / ratio_resize), int(height / ratio_resize)))
 
 
-        # INPAINT
-        grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        mask = cv2.threshold(grayimg , 230, 255, cv2.THRESH_BINARY)[1]
-        image = cv2.inpaint(image, mask, 0.1, cv2.INPAINT_TELEA)
-
-        # Detail enhance and create border
-        dst = cv2.detailEnhance(image, sigma_s=10, sigma_r=0.15)
-        dst= cv2.copyMakeBorder(dst, pixel_border, pixel_border, pixel_border, pixel_border, cv2.BORDER_CONSTANT,value=(255,255,255))
-
-        dst = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
-        dst = Image.fromarray(dst)
-        dst = np.asarray(dst)
+        dst = image_processing(image)
 
         height, width = dst.shape[:2]
         images = transforms(dst)[0].unsqueeze(0)
@@ -158,31 +180,13 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
             ]
         )
         print('({:04d}/{:04d}) {}: {}'.format(i + 1, len(image_paths), image_name, meters))
-                    
-        list_duplicate = [item for item, count in collections.Counter(labels).items() if count > 1]
         
-        for dup in list_duplicate:
-            list_indices = [i for (i, item) in enumerate(labels) if item == dup]
-            max_conf_indice = list_indices[0]
-            for indice in list_indices:
-                if scores[indice] > scores[max_conf_indice]:
-                    max_conf_indice = indice
-                    
-            list_indices.remove(max_conf_indice)
-            for index in sorted(list_indices, reverse=True):
-                labels = np.delete(labels, index)
-                scores = np.delete(scores, index)
-                boxes = np.delete(boxes, index, 0)
-
+        labels, scores, boxes = process_duplicate_labels(labels, scores, boxes)
 
         for i in range(len(boxes)):
             for k in range(len(boxes[i])):
-                boxes[i][k] *= ratio_resize
                 boxes[i][k] -= pixel_border
-            
-        
-        if (len(list_duplicate) != 0):
-            dup_images.append(image_name)
+                boxes[i][k] *= ratio_resize
         
 
         drawn_image = draw_boxes(image_show, boxes, labels, scores, class_names).astype(np.uint8)
@@ -241,7 +245,6 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
     print("Number of 2 corner images: {}".format(count_error_more_2))
 
     print("Error Images: {}".format(error_images))
-    print("Duplicate Images: {}".format(dup_images))
 
 
 def main():
