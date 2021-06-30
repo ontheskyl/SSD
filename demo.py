@@ -88,6 +88,13 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         image_name = os.path.basename(image_path)
 
         image = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
+        width = image.shape[1]
+        height = image.shape[0]
+        if (width * height > 6 * 10**6):
+            image = cv2.resize(image, (int(width / 4), int(height / 4)))
+        elif (width * height > 8 * 10**5):
+            image = cv2.resize(image, (int(width / 1.5), int(height / 1.5)))
+
         image_show = image.copy()
         cv2.cvtColor(image_show, cv2.COLOR_BGR2RGB)
 
