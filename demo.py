@@ -90,18 +90,11 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         image = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
         image_show = image.copy()
         cv2.cvtColor(image_show, cv2.COLOR_BGR2RGB)
-        # #COLOR 
-        # lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
-        # lab_planes = cv2.split(lab)
-        # clahe = cv2.createCLAHE(clipLimit=2.0,tileGridSize=(8,8))
-        # lab_planes[0] = clahe.apply(lab_planes[0])
-        # lab = cv2.merge(lab_planes)
-        # clahe_bgr = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
 
-        # #INPAINT + CLAHE
-        # grayimg = cv2.cvtColor(clahe_bgr, cv2.COLOR_BGR2GRAY)
-        # mask = cv2.threshold(grayimg , 220, 255, cv2.THRESH_BINARY)[1]
-        # clah_inpaint_img = cv2.inpaint(image, mask, 0.1, cv2.INPAINT_TELEA)
+        # INPAINT
+        grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        mask = cv2.threshold(grayimg , 230, 255, cv2.THRESH_BINARY)[1]
+        image = cv2.inpaint(image, mask, 0.1, cv2.INPAINT_TELEA)
 
         # Detail enhance and create border
         dst = cv2.detailEnhance(image, sigma_s=10, sigma_r=0.15)
@@ -163,7 +156,6 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         
 
         drawn_image = draw_boxes(image_show, boxes, labels, scores, class_names).astype(np.uint8)
-        # Image.fromarray(drawn_image).save(os.path.join(output_dir, image_name))
         cv2.imwrite(os.path.join(result_output_dir, image_name), drawn_image)
 
         # Crop image
