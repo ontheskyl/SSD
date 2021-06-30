@@ -20,7 +20,7 @@ import collections
 
 
 def distance_two_points(x1, y1, x2, y2):
-    return np.sqrt(np.pow(x1 - x2, 2) + np.pow(y1 - y2, 2))
+    return np.sqrt(np.power(x1 - x2, 2) + np.power(y1 - y2, 2))
 
 def get_center_bbox(box):
     a = (box[0] + box[2]) / 2
