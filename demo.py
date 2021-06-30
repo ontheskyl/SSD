@@ -19,6 +19,9 @@ from ssd.utils.checkpoint import CheckPointer
 import collections
 
 
+def distance_two_points(x1, y1, x2, y2):
+    return np.sqrt(np.pow(x1 - x2, 2) + np.pow(y1 - y2, 2))
+
 def get_center_bbox(box):
     a = (box[0] + box[2]) / 2
     b = (box[1] + box[3]) / 2
@@ -155,15 +158,23 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
                 scores = np.delete(scores, index)
                 boxes = np.delete(boxes, index, 0)
 
-        increase_length_bounding_box = 5
+        increase_size_bounding_box = 5
 
         for i in range(len(boxes)):
-            center = [0, 0]
+            center = get_center_bbox(boxes[i])
+
             for k in range(len(boxes[i])):
                 boxes[i][k] -= pixel_border
                 boxes[i][k] *= ratio_resize
-                
-            TL = [boxes[i][0], boxes[i][1]]
+            
+            # transform to origin coordinate and increase ratio
+            distance_from_bb_corner_to_center = distance_two_points(boxes[i][0], boxes[i][1], center[0], center[1])
+            ratio_increase = (increase_size_bounding_box + distance_from_bb_corner_to_center) / distance_from_bb_corner_to_center
+            boxes[i][0] = (boxes[i][0] - center[0]) * ratio_increase + center[0]
+            boxes[i][1] = (boxes[i][1] - center[1]) * ratio_increase + center[1]
+            boxes[i][2] = (boxes[i][2] - center[0]) * ratio_increase + center[0]
+            boxes[i][3] = (boxes[i][3] - center[1]) * ratio_increase + center[1]
+            
             
         
         if (len(list_duplicate) != 0):
