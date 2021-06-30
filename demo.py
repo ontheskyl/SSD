@@ -88,15 +88,19 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         image_name = os.path.basename(image_path)
 
         image = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
-        width = image.shape[1]
-        height = image.shape[0]
-        if (width * height > 6 * 10**6):
-            image = cv2.resize(image, (int(width / 4), int(height / 4)))
-        elif (width * height > 8 * 10**5):
-            image = cv2.resize(image, (int(width / 1.5), int(height / 1.5)))
-
         image_show = image.copy()
         cv2.cvtColor(image_show, cv2.COLOR_BGR2RGB)
+        
+        width = image.shape[1]
+        height = image.shape[0]
+        ratio_resize = 1
+        if (width * height > 6 * 10**6):
+            ratio_resize = 4
+            image = cv2.resize(image, (int(width / ratio_resize), int(height / ratio_resize)))
+        elif (width * height > 8 * 10**5):
+            ratio_resize = 1.5
+            image = cv2.resize(image, (int(width / ratio_resize), int(height / ratio_resize)))
+
 
         # INPAINT
         grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -135,12 +139,6 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
             ]
         )
         print('({:04d}/{:04d}) {}: {}'.format(i + 1, len(image_paths), image_name, meters))
-
-        for i in range(len(boxes)):
-            for k in range(len(boxes[i])):
-                boxes[i][k] -= pixel_border
-                if boxes[i][k] < 0:
-                    boxes[i][k] = 0
                     
         list_duplicate = [item for item, count in collections.Counter(labels).items() if count > 1]
         
@@ -156,7 +154,17 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
                 labels = np.delete(labels, index)
                 scores = np.delete(scores, index)
                 boxes = np.delete(boxes, index, 0)
+
+        increase_length_bounding_box = 5
+
+        for i in range(len(boxes)):
+            center = [0, 0]
+            for k in range(len(boxes[i])):
+                boxes[i][k] -= pixel_border
+                boxes[i][k] *= ratio_resize
                 
+            TL = [boxes[i][0], boxes[i][1]]
+            
         
         if (len(list_duplicate) != 0):
             dup_images.append(image_name)
@@ -166,12 +174,12 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         cv2.imwrite(os.path.join(result_output_dir, image_name), drawn_image)
 
         # Crop image
+        image = image_show.copy()
         pair = zip(labels, boxes)
         sort_pair = sorted(pair)
         boxes = [element for _, element in sort_pair]
         labels = [element for element, _ in sort_pair]
         
-        cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         crop = None
         if len(boxes) == 4:
             count_true += 1

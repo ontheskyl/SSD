@@ -56,7 +56,13 @@ def parse_annotation(data_dir, image_list, output_annotation):
         width = data["imageWidth"]
         height = data["imageHeight"]
 
-        thresh = math.log2(width * height) * 1.8 if (width * height < 6 * 10**6) else 90
+        thresh = 0
+        if (width * height > 6 * 10**6):
+            thresh = 90
+        elif (width * height > 3 * 10**5):
+            thresh = math.log2(width * height) * 1.8
+        else:
+            thresh = 20
 
         for ann in annotations:
             label = ann["label"]
