@@ -68,10 +68,6 @@ def align_image(image, top_left, top_right, bottom_right, bottom_left, expand_al
 
 
 def image_processing(image):
-    # INPAINT
-    grayimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    mask = cv2.threshold(grayimg , 230, 255, cv2.THRESH_BINARY)[1]
-    image = cv2.inpaint(image, mask, 0.1, cv2.INPAINT_TELEA)
 
     # Detail enhance and create border
     dst = cv2.detailEnhance(image, sigma_s=10, sigma_r=0.15)
