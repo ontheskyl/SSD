@@ -35,10 +35,9 @@ def reorient_image(im):
 
 class PASCALVOC07(object):
 
-    def __init__(self, trainval_anno, test_anno, val_ratio, out_dir, attrs):
+    def __init__(self, trainval_anno, test_anno, out_dir, attrs):
         self._trainval_anno = trainval_anno
         self._test_anno = test_anno
-        self._val_ratio = val_ratio
         self._out_dir = out_dir
         self._attrs = attrs
 

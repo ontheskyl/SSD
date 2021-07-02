@@ -75,10 +75,10 @@ def align_image(image, top_left, top_right, bottom_right, bottom_left, expand_al
         bottom_right_point = (bottom_right_point - center_point) * increase_ratio + center_point
         bottom_left_point = (bottom_left_point - center_point) * increase_ratio + center_point
 
-    top_left_point = check_point(top_left_point)
-    top_right_point = check_point(top_right_point)
-    bottom_right_point = check_point(bottom_right_point)
-    bottom_left_point = check_point(bottom_left_point)
+    top_left_point = check_point(top_left_point, image)
+    top_right_point = check_point(top_right_point, image)
+    bottom_right_point = check_point(bottom_right_point, image)
+    bottom_left_point = check_point(bottom_left_point, image)
 
     source_points = np.float32(
         [top_left_point, top_right_point, bottom_right_point, bottom_left_point]

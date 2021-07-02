@@ -23,6 +23,11 @@ def parse_inputs():
 
     return (args.data_dir, args.output_annotation_path, args.test_ratio)
 
+
+def distance_two_points(p1, p2):
+    return math.sqrt(math.pow(p1[0] - p2[0], 2) + math.pow(p1[1] - p2[1], 2))
+
+
 def train_test_split(image_dir, test_ratio):
     images = [f for f in os.listdir(image_dir)
               if re.search(r'([a-zA-Z0-9\s_\\.\-\(\):])+(.jpg|.jpeg|.png)$', f)]
@@ -56,13 +61,13 @@ def parse_annotation(data_dir, image_list, output_annotation):
         width = data["imageWidth"]
         height = data["imageHeight"]
 
-        thresh = 0
-        if (width * height > 6 * 10**6):
-            thresh = 90
-        elif (width * height > 3 * 10**5):
-            thresh = math.log2(width * height) * 1.8
-        else:
-            thresh = 20
+        center_point = [0, 0]
+        for i in range(len(annotations)):
+            point = annotations[i]["points"][0]
+            center_point[0] += point[0] / 4
+            center_point[1] += point[1] / 4
+
+        thresh = distance_two_points(center_point, annotations[0]["points"][0]) / 8.5
 
         for ann in annotations:
             label = ann["label"]
