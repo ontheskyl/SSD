@@ -4,8 +4,6 @@ from tqdm import tqdm
 import json
 import numpy as np
 from argparse import ArgumentParser
-import re
-
 
 ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif"]
 
@@ -18,7 +16,7 @@ def parse_inputs():
                         help='Enter the path of the output of transformation.')
     args = parser.parse_args()
 
-    return (args.data_dir, args.output_annotation_path)
+    return (args.data_dir, args.output_dir)
 
 def transform_images():
     

@@ -22,11 +22,11 @@ config.depth = "3"
 
 def parse_inputs():
     """ Parser function to take care of the inputs """
-    parser = ArgumentParser(description='Argument: python data_preprocess.py <output_direction> <annotation_path>')
-    parser.add_argument('output_dir', type=str,
-                        help='Enter the path of the output.')
+    parser = ArgumentParser(description='Argument: python data_preprocess.py <annotation_path> <output_direction>')
     parser.add_argument('annotation_dir', default="Annotations", type=str,
                         help='Enter the path of annotation files.')
+    parser.add_argument('output_dir', type=str,
+                        help='Enter the path of the output.')
     args = parser.parse_args()
 
     return (args.output_dir, args.annotation_dir)

@@ -13,9 +13,22 @@ If you want to add your custom components, please see [DEVELOP_GUIDE.md](DEVELOP
 %cd SSD
 ```
 
+_ (optional) khởi tạo dữ liệu transform:
+
+python convert_pascalvoc_dataset/transform_images.py <input_direction> <output_direction>
+
+input_direction: đường dẫn dữ liệu đầu vào
+
+output_direction: đường dẫn dữ liệu xuất ra
+
+Ví dụ:
+```text
+!python convert_pascalvoc_dataset/transform_images.py "../cmnd_back" "../cmnd_back_transform"
+```
+
 + Chạy file data_preprocess.py:
 
-python data_preprocess.py <data_direction> <output_annotation_path> <test_ratio>
+python convert_pascalvoc_dataset/data_preprocess.py <data_direction> <output_annotation_path> <test_ratio>
 
 data_direction: đường dẫn dữ liệu ban đầu
 
@@ -25,22 +38,20 @@ test_ratio: tỉ lệ dữ liệu testing
 
 Ví dụ: 
 ```text
-!python convert_pascalvoc_dataset/data_preprocess.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/cmnd_back" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations" 0.1
+!python convert_pascalvoc_dataset/data_preprocess.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/cmnd_back" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations" 0.3
 ```
 
 + Chạy file build.py:
 
-python data_preprocess.py <output_direction> <annotation_path> <validation_ratio>
+python convert_pascalvoc_dataset/data_preprocess.py <annotation_path> <output_direction>
 
 output_direction: đường dẫn kết quả trả về (chương trình sẽ tạo dữ liệu theo chuẩn PASCAL VOC)
 
 annotation_path: đường dẫn đến 2 file Train_annotation.txt và Test_annotation.txt đã tạo trước đó
 
-validation_ratio: tỉ lệ dữ liệu validation
-
 Ví dụ:
 ```text
-!python convert_pascalvoc_dataset/build.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/data" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations" 0
+!python convert_pascalvoc_dataset/build.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/data" 
 ```
 
 2/ Training
@@ -67,7 +78,12 @@ OUTPUT_DIR: đường dẫn lưu model của chương trình (lưu ý, nếu đ�
 ```text
 !python test.py --config-file configs/my_custom_config_320.yaml
 ```
+4/ Demo
 
+!python --config-file <config file> --images_dir <image direction> --ckpt <model> --output_dir <output direction> --score_threshold <score>
+```text
+!python demo.py --config-file configs/my_custom_config_vgg_512.yaml --images_dir "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/cmnd_back" --ckpt "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/models/vgg_ssd512_30k_4cls/model_final.pth" --output_dir "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/demo" --score_threshold 0.5
+```
 
 ## Troubleshooting
 If you have issues running or compiling this code, we have compiled a list of common issues in [TROUBLESHOOTING.md](TROUBLESHOOTING.md). If your issue is not present there, please feel free to open a new issue.
