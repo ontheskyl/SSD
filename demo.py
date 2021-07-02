@@ -31,6 +31,22 @@ def get_center_bbox(box):
     return np.array([a, b])
 
 
+def check_point(point, image):
+    w = image.shape[1]
+    h = image.shape[0]
+
+    if (point[0] < 0):
+        point[0] = 0
+    elif (point[0] > w):
+        point[0] = w - 1
+    
+    if (point[1] < 0):
+        point[1] = 0
+    elif (point[1] > h):
+        point[1] = h - 1
+
+    return point
+
 def perspective_transform(image, source_points):
     dest_points = np.float32([[0, 0], [500, 0], [500, 300], [0, 300]])
     M = cv2.getPerspectiveTransform(source_points, dest_points)
@@ -59,6 +75,10 @@ def align_image(image, top_left, top_right, bottom_right, bottom_left, expand_al
         bottom_right_point = (bottom_right_point - center_point) * increase_ratio + center_point
         bottom_left_point = (bottom_left_point - center_point) * increase_ratio + center_point
 
+    top_left_point = check_point(top_left_point)
+    top_right_point = check_point(top_right_point)
+    bottom_right_point = check_point(bottom_right_point)
+    bottom_left_point = check_point(bottom_left_point)
 
     source_points = np.float32(
         [top_left_point, top_right_point, bottom_right_point, bottom_left_point]
@@ -205,28 +225,29 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
             thresh = 0
             images_missing_1_corner.append(image_name)
             count_error_1 += 1
+            
             if 1 not in labels:
-                midpoint = np.add(boxes[0], boxes[2]) / 2
-                y = int(2 * midpoint[1] - boxes[1][1] + thresh)
-                x = int(2 * midpoint[0] - boxes[1][0] + thresh)
+                midpoint = np.add(get_center_bbox(boxes[0]), get_center_bbox(boxes[2])) / 2
+                y = int(2 * midpoint[1] - get_center_bbox(boxes[1])[1] + thresh)
+                x = int(2 * midpoint[0] - get_center_bbox(boxes[1])[0] + thresh)
                 TL = np.array([x, y, x, y])
                 crop = align_image(image, TL, boxes[0], boxes[1], boxes[2], True)
             elif 2 not in labels:
-                midpoint = np.add(boxes[0], boxes[1]) / 2
-                y = int(2 * midpoint[1] - boxes[2][1] + thresh)
-                x = int(2 * midpoint[0] - boxes[2][0] + thresh)
+                midpoint = np.add(get_center_bbox(boxes[0]), get_center_bbox(boxes[1])) / 2
+                y = int(2 * midpoint[1] - get_center_bbox(boxes[2])[1] + thresh)
+                x = int(2 * midpoint[0] - get_center_bbox(boxes[2])[0] + thresh)
                 TR = np.array([x, y, x, y])
                 crop = align_image(image, boxes[0], TR, boxes[1], boxes[2], True)
             elif 3 not in labels:
-                midpoint = np.add(boxes[2], boxes[1]) / 2
-                y = int(2 * midpoint[1] - boxes[0][1] + thresh)
-                x = int(2 * midpoint[0] - boxes[0][0] + thresh)
+                midpoint = np.add(get_center_bbox(boxes[2]), get_center_bbox(boxes[1])) / 2
+                y = int(2 * midpoint[1] - get_center_bbox(boxes[0])[1] + thresh)
+                x = int(2 * midpoint[0] - get_center_bbox(boxes[0])[0] + thresh)
                 BR = np.array([x, y, x, y])
                 crop = align_image(image, boxes[0], boxes[1], BR, boxes[2], True)
             elif 4 not in labels:
-                midpoint = np.add(boxes[0], boxes[2]) / 2
-                y = int(2 * midpoint[1] - boxes[1][1] + thresh)
-                x = int(2 * midpoint[0] - boxes[1][0] + thresh)
+                midpoint = np.add(get_center_bbox(boxes[0]), get_center_bbox(boxes[2])) / 2
+                y = int(2 * midpoint[1] - get_center_bbox(boxes[1])[1] + thresh)
+                x = int(2 * midpoint[0] - get_center_bbox(boxes[1])[0] + thresh)
                 BL = np.array([x, y, x, y])
                 crop = align_image(image, boxes[0], boxes[1], boxes[2], BL, True)
         else:
