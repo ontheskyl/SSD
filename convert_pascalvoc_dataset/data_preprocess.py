@@ -67,7 +67,7 @@ def parse_annotation(data_dir, image_list, output_annotation):
             center_point[0] += point[0] / 4
             center_point[1] += point[1] / 4
 
-        thresh = distance_two_points(center_point, annotations[0]["points"][0]) / 8.5
+        thresh = distance_two_points(center_point, annotations[0]["points"][0]) / 8
 
         for ann in annotations:
             label = ann["label"]
