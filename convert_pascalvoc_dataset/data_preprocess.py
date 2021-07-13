@@ -99,9 +99,9 @@ def parse_annotation(data_dir, image_list, output_annotation):
 
         points = shrinking_points(points, -shrinking_thresh)
 
-        for ann in annotations:
-            label = ann["label"]
-            point = points[0]
+        for i in range(len(annotations)):
+            label = annotations[i]["label"]
+            point = points[i]
             x1 = int(max(point[0] - box_thresh, 0))
             x2 = int(min(point[0] + box_thresh, width - 1))
             y1 = int(max(point[1] - box_thresh, 0))
