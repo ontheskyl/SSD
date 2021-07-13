@@ -52,9 +52,13 @@ class DatasetCatalog:
             "data_dir": "val2014",
             "ann_file": "annotations/instances_val2014.json"
         },
-        'my_custom_trainval': {
+        'my_custom_train': {
             "data_dir": "data",
-            "split": "trainval"
+            "split": "train"
+        },
+        'my_custom_val': {
+            "data_dir": "data",
+            "split": "val"
         },
         'my_custom_test': {
             "data_dir": "data",

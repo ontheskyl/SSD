@@ -12,7 +12,7 @@ MODEL:
 INPUT:
   IMAGE_SIZE: 512
 DATASETS:
-  TRAIN: ("my_custom_trainval", )
+  TRAIN: ("my_custom_train", )
   TEST: ("my_custom_test", )
 SOLVER:
   MAX_ITER: 30000
