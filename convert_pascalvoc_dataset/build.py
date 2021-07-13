@@ -43,8 +43,10 @@ if __name__ == "__main__":
     if (not os.path.isdir(output_dir)):
         os.mkdir(output_dir)
 
+    print("Building PASCAL VOC 2007...")
     trainval_anno = os.path.join(annotation_dir, 'Train_annotation.txt')
+    val_anno = os.path.join(annotation_dir, 'Val_annotation.txt')
     test_anno = os.path.join(annotation_dir, 'Test_annotation.txt')
 
-    p = PASCALVOC07(trainval_anno, test_anno, output_dir, config)
+    p = PASCALVOC07(trainval_anno, val_anno, test_anno, output_dir, config)
     p.build(True)

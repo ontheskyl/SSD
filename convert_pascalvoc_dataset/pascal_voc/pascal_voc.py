@@ -35,8 +35,9 @@ def reorient_image(im):
 
 class PASCALVOC07(object):
 
-    def __init__(self, trainval_anno, test_anno, out_dir, attrs):
+    def __init__(self, trainval_anno, val_anno, test_anno, out_dir, attrs):
         self._trainval_anno = trainval_anno
+        self._val_anno = val_anno
         self._test_anno = test_anno
         self._out_dir = out_dir
         self._attrs = attrs
@@ -120,5 +121,6 @@ class PASCALVOC07(object):
     def build(self, start_idx=1, verbose=True):
         self._build_voc_dir()
 
-        n = self._build_subset(start_idx, "trainval", self._trainval_anno, verbose, delimiter = ",")
-        self._build_subset(n + start_idx, "test", self._test_anno, verbose, delimiter = ",")
+        n_train = self._build_subset(start_idx, "train", self._trainval_anno, verbose, delimiter = ",")
+        n_val = self._build_subset(n_train + start_idx, "val", self._val_anno, verbose, delimiter = ",")
+        self._build_subset(n_train + n_val + start_idx, "test", self._test_anno, verbose, delimiter = ",")
