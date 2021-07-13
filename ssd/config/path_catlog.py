@@ -64,6 +64,10 @@ class DatasetCatalog:
             "data_dir": "data",
             "split": "test"
         },
+        'my_custom_test_full': {
+            "data_dir": "data",
+            "split": "test_full"
+        },
     }
 
     @staticmethod
