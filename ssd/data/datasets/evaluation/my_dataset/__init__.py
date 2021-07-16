@@ -41,6 +41,7 @@ def my_evaluation(dataset, predictions, output_dir, iteration=None):
                                 gt_difficults=gt_difficults,
                                 iou_thresh=0.5,
                                 use_07_metric=True)
+
     logger = logging.getLogger("SSD.inference")
     result_str = "mAP: {:.4f}\n".format(result["map"])
     metrics = {'mAP': result["map"]}
@@ -49,6 +50,31 @@ def my_evaluation(dataset, predictions, output_dir, iteration=None):
             continue
         metrics[class_names[i]] = ap
         result_str += "{:<16}: {:.4f}\n".format(class_names[i], ap)
+
+    result_str += "=========================\n"
+    result_str += "Precision:\n"
+    for i, prec in enumerate(result["precision"]):
+        if i == 0:  # skip background
+            continue
+        metrics[class_names[i]] = prec
+        result_str += "{:<16}: {:.4f}\n".format(class_names[i], prec)
+
+    result_str += "=========================\n"
+    result_str += "Recall:\n"
+    for i, rec in enumerate(result["recall"]):
+        if i == 0:  # skip background
+            continue
+        metrics[class_names[i]] = rec
+        result_str += "{:<16}: {:.4f}\n".format(class_names[i], rec)
+    
+    result_str += "=========================\n"
+    result_str += "F1 Score:\n"
+    for i, f1_score in enumerate(result["f1_score"]):
+        if i == 0:  # skip background
+            continue
+        metrics[class_names[i]] = f1_score
+        result_str += "{:<16}: {:.4f}\n".format(class_names[i], f1_score)
+
     logger.info(result_str)
 
     if iteration is not None:

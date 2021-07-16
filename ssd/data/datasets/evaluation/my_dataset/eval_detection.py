@@ -119,7 +119,18 @@ def eval_detection(
 
     ap = calc_detection_ap(prec, rec, use_07_metric=use_07_metric)
 
-    return {'ap': ap, 'map': np.nanmean(ap)}
+    prec_results = [None]
+    rec_results  = [None]
+    f1_score_results = [None]
+    num_obj = len(prec)
+    for i in range(1, num_obj):
+        prec_value = prec[i][-1]
+        rec_value = rec[i][-1]
+        prec_results.append(prec_value)
+        rec_results.append(rec_value)
+        f1_score_results.append(2 * prec_value * rec_value / (prec_value + rec_value))
+    
+    return {'ap': ap, 'map': np.nanmean(ap), 'precision': prec_results, 'recall': rec_results, 'f1_score': f1_score_results}
 
 
 def calc_detection_prec_rec(
@@ -259,6 +270,7 @@ def calc_detection_prec_rec(
         if next(iter_, None) is not None:
             raise ValueError('Length of input iterables need to be same.')
 
+    print(n_pos)
     n_fg_class = max(n_pos.keys()) + 1
     prec = [None] * n_fg_class
     rec = [None] * n_fg_class
@@ -275,6 +287,7 @@ def calc_detection_prec_rec(
 
         # If an element of fp + tp is 0,
         # the corresponding element of prec[l] is nan.
+        
         prec[l] = tp / (fp + tp)
         # If n_pos[l] is 0, rec[l] is None.
         if n_pos[l] > 0:
