@@ -83,7 +83,7 @@ class PASCALVOC07(object):
 
         # dictionary_image_id = {}
         n = 0
-        with open(anno_file, 'r') as anno_f:
+        with open(anno_file, 'r', encoding = "utf-8") as anno_f:
             for line in tqdm(anno_f):
                 line_split = line.strip().split(delimiter)
 
