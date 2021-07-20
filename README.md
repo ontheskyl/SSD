@@ -21,7 +21,7 @@ python convert_pascalvoc_dataset/data_preprocess.py <data_direction> <output_ann
 
 data_direction: đường dẫn dữ liệu ban đầu
 
-output_annotation_path: đường dẫn kết quả trả về (chương trình sẽ trả về 2 file Train_annotation.txt và Test_annotation.txt
+output_annotation_path: đường dẫn kết quả trả về (chương trình sẽ trả về 3 file Train_annotation.txt, Val_annotation.txt và Test_annotation.txt
 
 test_ratio: tỉ lệ dữ liệu testing
 
@@ -38,7 +38,7 @@ python convert_pascalvoc_dataset/data_preprocess.py <annotation_path> <output_di
 
 output_direction: đường dẫn kết quả trả về (chương trình sẽ tạo dữ liệu theo chuẩn PASCAL VOC)
 
-annotation_path: đường dẫn đến 2 file Train_annotation.txt và Test_annotation.txt đã tạo trước đó
+annotation_path: đường dẫn đến 3 file Train_annotation.txt, Val_Annotation.txt và Test_annotation.txt đã tạo trước đó
 
 Ví dụ:
 ```text
