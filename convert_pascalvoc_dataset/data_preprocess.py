@@ -9,6 +9,7 @@ import json
 from argparse import ArgumentParser
 import math
 
+
 ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif"]
 
 def parse_inputs():
@@ -53,8 +54,11 @@ def shrinking_points(points, change_pixel):
 
 
 def train_test_split(image_dir, test_ratio, val_ratio = 0.2):
-    images = [f for f in os.listdir(image_dir)
-              if re.search(r'([a-zA-Z0-9\s_\\.\-\(\):])+(.jpg|.jpeg|.png)$', f)]
+    folder_dirs = [f for f in os.listdir(image_dir)]
+    images = []
+    for folder in folder_dirs:
+        images.extend([os.path.join(folder, f) for f in os.listdir(os.path.join(image_dir, folder))
+                    if re.search(r'([a-zA-Z0-9\s_\\.\-\(\):])+(.jpg|.jpeg|.png)$', f)])
 
     random.seed(1234)
     random.shuffle(images)
@@ -72,6 +76,7 @@ def train_test_split(image_dir, test_ratio, val_ratio = 0.2):
 
 def parse_annotation(data_dir, image_list, output_annotation):
 
+    folder_dirs = [f for f in os.listdir(data_dir)]
     json_file = []
     for tail_img in ALLOWED_EXTENSIONS:
         json_file.extend([f.replace(tail_img, ".json") for f in image_list if tail_img in f])
@@ -82,8 +87,9 @@ def parse_annotation(data_dir, image_list, output_annotation):
         str_data = []
         fi = open(os.path.join(data_dir, f), "r", encoding = "utf-8")
         data = json.load(fi)
+        
 
-        str_data.append(os.path.join(data_dir, data["imagePath"]))
+        str_data.append(os.path.join(data_dir, os.path.dirname(f) + "/", data["imagePath"]))
         annotations = data["shapes"]
         width = data["imageWidth"]
         height = data["imageHeight"]
@@ -96,12 +102,15 @@ def parse_annotation(data_dir, image_list, output_annotation):
         center_point = get_center_point(points)
 
         thresh = distance_two_points(center_point, points[0]) / 8
-        # shrinking_thresh = thresh * 10 / 8
+        shrinking_thresh = thresh * 5 / 4
 
-        points = shrinking_points(points, -thresh)
+        points = shrinking_points(points, -shrinking_thresh)
 
         for i in range(len(annotations)):
             label = annotations[i]["label"]
+            if (label not in ["top_left", "top_right", "bottom_left", "bottom_right"]):
+                continue
+
             point = points[i]
             x1 = int(max(point[0] - thresh, 0))
             x2 = int(min(point[0] + thresh, width - 1))
@@ -110,8 +119,10 @@ def parse_annotation(data_dir, image_list, output_annotation):
 
             str_data.extend([label, str(x1), str(y1), str(x2), str(y2)])
 
+
         str_data = ",".join(str_data)
         result_str.append(str_data)
+
 
     result_str = "\n".join(result_str)
     
