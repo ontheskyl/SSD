@@ -13,6 +13,10 @@ If you want to add your custom components, please see [DEVELOP_GUIDE.md](DEVELOP
 %cd SSD
 ```
 
++ Dữ liệu đầu vào:
+
+Khởi tạo 1 folder, trong đó chứa 2 folder nhỏ lần lượt cho chứng minh thư mặt trước và chứng minh thư mặt sau, mỗi folder nhỏ chứa đầy đủ các ảnh và file json cùng tên tương ứng
+
 + Chạy file data_preprocess.py:
 
 File này sẽ phân chia dữ liệu theo 3 tập (train, validation, test) với validation mặc định 0.2
@@ -27,7 +31,7 @@ test_ratio: tỉ lệ dữ liệu testing
 
 Ví dụ: 
 ```text
-!python convert_pascalvoc_dataset/data_preprocess.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/cmnd_back" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations" 0.1
+!python convert_pascalvoc_dataset/data_preprocess.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/cmnd" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations" 0.1
 ```
 
 + Chạy file build.py:

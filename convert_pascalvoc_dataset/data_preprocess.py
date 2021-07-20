@@ -57,7 +57,7 @@ def train_test_split(image_dir, test_ratio, val_ratio = 0.2):
     folder_dirs = [f for f in os.listdir(image_dir)]
     images = []
     for folder in folder_dirs:
-        images.extend([os.path.join(folder, f) for f in os.listdir(os.path.join(image_dir, folder))
+        images.extend([os.path.join(folder + "/", f) for f in os.listdir(os.path.join(image_dir, folder))
                     if re.search(r'([a-zA-Z0-9\s_\\.\-\(\):])+(.jpg|.jpeg|.png)$', f)])
 
     random.seed(1234)
@@ -89,7 +89,7 @@ def parse_annotation(data_dir, image_list, output_annotation):
         data = json.load(fi)
         
 
-        str_data.append(os.path.join(data_dir, os.path.dirname(f) + "/", data["imagePath"]))
+        str_data.append(os.path.join(data_dir, f.replace(".json", ".jpg")))
         annotations = data["shapes"]
         width = data["imageWidth"]
         height = data["imageHeight"]
