@@ -51,7 +51,7 @@ Ví dụ:
 
 Tại file SSD/ssd/config/path_catalog.py:
 
-Thay đổi DATA_DIR trong DatasetCatalog thành đường dẫn gốc đến dữ liệu, thay đổi đường dẫn của DATASET
+Thay đổi my_root trong hàm get của "my_custom" thành đường dẫn gốc đến dữ liệu, thay đổi đường dẫn của DATASET
 
 + Thay đổi file config tại SSD/config:
 
