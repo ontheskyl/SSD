@@ -270,7 +270,7 @@ def calc_detection_prec_rec(
         if next(iter_, None) is not None:
             raise ValueError('Length of input iterables need to be same.')
 
-    print(n_pos)
+
     n_fg_class = max(n_pos.keys()) + 1
     prec = [None] * n_fg_class
     rec = [None] * n_fg_class

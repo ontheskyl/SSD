@@ -69,6 +69,7 @@ def train_test_split(image_dir, test_ratio, val_ratio = 0.2):
 
     return images_train, images_val, images_test
 
+
 def parse_annotation(data_dir, image_list, output_annotation):
 
     json_file = []
@@ -94,18 +95,18 @@ def parse_annotation(data_dir, image_list, output_annotation):
 
         center_point = get_center_point(points)
 
-        shrinking_thresh = distance_two_points(center_point, points[0]) / 7
-        box_thresh = distance_two_points(center_point, points[0]) / 8
+        thresh = distance_two_points(center_point, points[0]) / 8
+        # shrinking_thresh = thresh * 10 / 8
 
-        points = shrinking_points(points, -shrinking_thresh)
+        points = shrinking_points(points, -thresh)
 
         for i in range(len(annotations)):
             label = annotations[i]["label"]
             point = points[i]
-            x1 = int(max(point[0] - box_thresh, 0))
-            x2 = int(min(point[0] + box_thresh, width - 1))
-            y1 = int(max(point[1] - box_thresh, 0))
-            y2 = int(min(point[1] + box_thresh, height - 1))
+            x1 = int(max(point[0] - thresh, 0))
+            x2 = int(min(point[0] + thresh, width - 1))
+            y1 = int(max(point[1] - thresh, 0))
+            y2 = int(min(point[1] + thresh, height - 1))
 
             str_data.extend([label, str(x1), str(y1), str(x2), str(y2)])
 

@@ -21,7 +21,7 @@ SOLVER:
   BATCH_SIZE: 24
   LR: 1e-3
 TEST:
-  NMS_THRESHOLD: 0.4
+  NMS_THRESHOLD: 0.6
   CONFIDENCE_THRESHOLD: 0.3
 
 OUTPUT_DIR: '/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/models/vgg_ssd512_30k_4cls'

@@ -19,9 +19,6 @@ from ssd.utils.checkpoint import CheckPointer
 import collections
 
 
-pixel_border = 40
-
-
 def distance_two_points(point_1, point_2):
     return np.sqrt(np.power(point_1[0] - point_2[0], 2) + np.power(point_1[1] - point_2[1], 2))
 
@@ -89,11 +86,11 @@ def align_image(image, top_left, top_right, bottom_right, bottom_left, expand_al
 
 def image_processing(image):
 
-    # Detail enhance and create border
-    dst = cv2.detailEnhance(image, sigma_s=10, sigma_r=0.15)
-    dst= cv2.copyMakeBorder(dst, pixel_border, pixel_border, pixel_border, pixel_border, cv2.BORDER_CONSTANT,value=(255,255,255))
+    # # Detail enhance and create border
+    # dst = cv2.detailEnhance(image, sigma_s=10, sigma_r=0.15)
+    # dst= cv2.copyMakeBorder(dst, pixel_border, pixel_border, pixel_border, pixel_border, cv2.BORDER_CONSTANT,value=(255,255,255))
 
-    dst = cv2.cvtColor(dst, cv2.COLOR_BGR2RGB)
+    dst = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     dst = Image.fromarray(dst)
     return np.asarray(dst)
 
@@ -157,18 +154,18 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         image_name = os.path.basename(image_path)
 
         image = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
-        image_show = image.copy()
-        cv2.cvtColor(image_show, cv2.COLOR_BGR2RGB)
+        # image_show = image.copy()
+        # cv2.cvtColor(image_show, cv2.COLOR_BGR2RGB)
         
-        width = image.shape[1]
-        height = image.shape[0]
-        ratio_resize = 1
-        if (width * height > 6 * 10**6):
-            ratio_resize = 4
-        elif (width * height > 8 * 10**5):
-            ratio_resize = 1.5
+        # width = image.shape[1]
+        # height = image.shape[0]
+        # ratio_resize = 1
+        # if (width * height > 6 * 10**6):
+        #     ratio_resize = 4
+        # elif (width * height > 8 * 10**5):
+        #     ratio_resize = 1.5
         
-        image = cv2.resize(image, (int(width / ratio_resize), int(height / ratio_resize)))
+        # image = cv2.resize(image, (int(width / ratio_resize), int(height / ratio_resize)))
 
 
         dst = image_processing(image)
@@ -200,17 +197,17 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         
         labels, scores, boxes = process_duplicate_labels(labels, scores, boxes)
 
-        for i in range(len(boxes)):
-            for k in range(len(boxes[i])):
-                boxes[i][k] -= pixel_border
-                boxes[i][k] *= ratio_resize
+        # for i in range(len(boxes)):
+        #     for k in range(len(boxes[i])):
+        #         boxes[i][k] -= pixel_border
+        #         boxes[i][k] *= ratio_resize
         
 
-        drawn_image = draw_boxes(image_show, boxes, labels, scores, class_names).astype(np.uint8)
+        drawn_image = draw_boxes(image, boxes, labels, scores, class_names).astype(np.uint8)
         cv2.imwrite(os.path.join(result_output_dir, image_name), drawn_image)
 
         # Crop image
-        image = image_show.copy()
+        # image = image_show.copy()
         pair = zip(labels, boxes)
         sort_pair = sorted(pair)
         boxes = [element for _, element in sort_pair]

@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 
 config = edict()
 
-config.author = "sunshine tech"
+config.author = "Sunshine Tech"
 config.root = "annotation"
 config.folder = "VOC2007"
 config.annotation = "PASCAL VOC2007"
@@ -34,10 +34,10 @@ def parse_inputs():
 
 if __name__ == "__main__":
 
-    # !python convert_pascalvoc_dataset/build.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/data" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations" 0
+    # !python convert_pascalvoc_dataset/build.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/data" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations"
 
     # OR test on local
-    # python convert_pascalvoc_dataset/build.py "../data" "../Annotations" 0 
+    # python convert_pascalvoc_dataset/build.py "../data" "../Annotations"
     output_dir, annotation_dir = parse_inputs()
 
     if (not os.path.isdir(output_dir)):
