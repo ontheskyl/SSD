@@ -80,7 +80,7 @@ def parse_annotation(data_dir, image_list, output_annotation):
     print("Getting Annotations {}...".format(output_annotation))
     for f in tqdm(json_file):
         str_data = []
-        fi = open(os.path.join(data_dir, f), "r")
+        fi = open(os.path.join(data_dir, f), "r", encoding = "utf-8")
         data = json.load(fi)
 
         str_data.append(os.path.join(data_dir, data["imagePath"]))
@@ -115,7 +115,7 @@ def parse_annotation(data_dir, image_list, output_annotation):
 
     result_str = "\n".join(result_str)
     
-    fo = open(output_annotation, "w")
+    fo = open(output_annotation, "w", encoding = "utf-8")
     fo.write(result_str)
     fo.close()
 
