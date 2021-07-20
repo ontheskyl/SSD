@@ -13,20 +13,9 @@ If you want to add your custom components, please see [DEVELOP_GUIDE.md](DEVELOP
 %cd SSD
 ```
 
-_ (optional) khởi tạo dữ liệu transform:
-
-python convert_pascalvoc_dataset/transform_images.py <input_direction> <output_direction>
-
-input_direction: đường dẫn dữ liệu đầu vào
-
-output_direction: đường dẫn dữ liệu xuất ra
-
-Ví dụ:
-```text
-!python convert_pascalvoc_dataset/transform_images.py "../cmnd_back" "../cmnd_back_transform"
-```
-
 + Chạy file data_preprocess.py:
+
+File này sẽ phân chia dữ liệu theo 3 tập (train, validation, test) với validation mặc định 0.2
 
 python convert_pascalvoc_dataset/data_preprocess.py <data_direction> <output_annotation_path> <test_ratio>
 
@@ -38,10 +27,12 @@ test_ratio: tỉ lệ dữ liệu testing
 
 Ví dụ: 
 ```text
-!python convert_pascalvoc_dataset/data_preprocess.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/cmnd_back" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations" 0.3
+!python convert_pascalvoc_dataset/data_preprocess.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/cmnd_back" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations" 0.1
 ```
 
 + Chạy file build.py:
+
+File này sẽ dựa vào 3 file Train_Annotations.txt, Val_Annotations.txt, Test_Annotations.txt để xây dựng format PASCAL VOC
 
 python convert_pascalvoc_dataset/data_preprocess.py <annotation_path> <output_direction>
 
