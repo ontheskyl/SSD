@@ -10,14 +10,18 @@ from ssd.structures.container import Container
 
 class MyDataset(torch.utils.data.Dataset):
 
-    class_names = ('__background__', 'top_left', 'top_right', 'bottom_right', 'bottom_left')
-
-    def __init__(self, data_dir, split, transform=None, target_transform=None, keep_difficult=True):
+    def __init__(self, data_dir, split, transform=None, target_transform=None, keep_difficult=True, check_9_labels = False):
         """Dataset for VOC data.
         Args:
             data_dir: the root of the dataset, the directory contains the following sub-directories:
                 Annotations, ImageSets, JPEGImages, SegmentationClass, SegmentationObject.
         """
+        if (check_9_labels):
+            self.class_names = ('__background__', 'top_left_top', 'top_right_top', 'bottom_right_top', 'bottom_left_top', 
+                                                'top_left_back', 'top_right_back', 'bottom_right_back', 'bottom_left_back')
+        else:
+            self.class_names = ('__background__', 'top_left', 'top_right', 'bottom_right', 'bottom_left')
+
         self.data_dir = data_dir
         self.split = split
         self.transform = transform

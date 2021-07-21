@@ -27,11 +27,11 @@ class BatchCollator:
         return images, targets, img_ids
 
 
-def make_data_loader(cfg, is_train=True, distributed=False, max_iter=None, start_iter=0):
+def make_data_loader(cfg, is_train=True, distributed=False, max_iter=None, start_iter=0, check_9_labels=False):
     train_transform = build_transforms(cfg, is_train=is_train)
     target_transform = build_target_transform(cfg) if is_train else None
     dataset_list = cfg.DATASETS.TRAIN if is_train else cfg.DATASETS.TEST
-    datasets = build_dataset(dataset_list, transform=train_transform, target_transform=target_transform, is_train=is_train)
+    datasets = build_dataset(dataset_list, transform=train_transform, target_transform=target_transform, is_train=is_train, check_9_labels=check_9_labels)
 
     shuffle = is_train
 

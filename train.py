@@ -40,7 +40,8 @@ def train(cfg, args):
     arguments.update(extra_checkpoint_data)
 
     max_iter = cfg.SOLVER.MAX_ITER // args.num_gpus
-    train_loader = make_data_loader(cfg, is_train=True, distributed=args.distributed, max_iter=max_iter, start_iter=arguments['iteration'])
+    train_loader = make_data_loader(cfg, is_train=True, distributed=args.distributed, 
+                                    max_iter=max_iter, start_iter=arguments['iteration'], check_9_labels=args.check_9_labels)
 
     model = do_train(cfg, model, train_loader, optimizer, scheduler, checkpointer, device, arguments, args)
     return model
@@ -60,6 +61,7 @@ def main():
     parser.add_argument('--save_step', default=500, type=int, help='Save checkpoint every save_step')
     parser.add_argument('--eval_step', default=500, type=int, help='Evaluate dataset every eval_step, disabled when eval_step < 0')
     parser.add_argument('--use_tensorboard', default=True, type=str2bool)
+    parser.add_argument('--check_9_labels', default=False, action='store_true', help="Allow the dataset of 9 labels (4 corners of 2 face including top and back of id card)")
     parser.add_argument(
         "--skip-test",
         dest="skip_test",
@@ -108,7 +110,7 @@ def main():
     if not args.skip_test:
         logger.info('Start evaluating...')
         torch.cuda.empty_cache()  # speed up evaluating after training finished
-        do_evaluation(cfg, model, distributed=args.distributed)
+        do_evaluation(cfg, model, distributed=args.distributed, check_9_labels=args.check_9_labels)
 
 
 if __name__ == '__main__':

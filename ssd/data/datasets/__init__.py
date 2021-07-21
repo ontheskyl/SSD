@@ -12,7 +12,7 @@ _DATASETS = {
 }
 
 
-def build_dataset(dataset_list, transform=None, target_transform=None, is_train=True):
+def build_dataset(dataset_list, transform=None, target_transform=None, is_train=True, check_9_labels=False):
     assert len(dataset_list) > 0
     datasets = []
     for dataset_name in dataset_list:
@@ -21,6 +21,8 @@ def build_dataset(dataset_list, transform=None, target_transform=None, is_train=
         factory = _DATASETS[data['factory']]
         args['transform'] = transform
         args['target_transform'] = target_transform
+        args['check_9_labels'] = check_9_labels
+        
         if factory == VOCDataset:
             args['keep_difficult'] = not is_train
         elif factory == COCODataset:

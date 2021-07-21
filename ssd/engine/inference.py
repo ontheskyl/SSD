@@ -69,7 +69,7 @@ def inference(model, data_loader, dataset_name, device, output_folder=None, use_
         if (not os.path.isdir("eval_results")):
             os.mkdir("eval_results")
 
-        LABEL = ["", "top_left", "top_right", "bottom_right", "bottom_left"]
+        LABEL = dataset.class_names
         for i in range(len(dataset)):
             image_id, annotation = dataset.get_annotation(i)
             img = dataset._read_image(image_id)
@@ -94,12 +94,12 @@ def inference(model, data_loader, dataset_name, device, output_folder=None, use_
 
 
 @torch.no_grad()
-def do_evaluation(cfg, model, distributed, check_write_img = False, **kwargs):
+def do_evaluation(cfg, model, distributed, check_write_img = False, check_9_labels = False, **kwargs):
     if isinstance(model, torch.nn.parallel.DistributedDataParallel):
         model = model.module
     model.eval()
     device = torch.device(cfg.MODEL.DEVICE)
-    data_loaders_val = make_data_loader(cfg, is_train=False, distributed=distributed)
+    data_loaders_val = make_data_loader(cfg, is_train=False, distributed=distributed, check_9_labels=check_9_labels)
     eval_results = []
     for dataset_name, data_loader in zip(cfg.DATASETS.TEST, data_loaders_val):
         output_folder = os.path.join(cfg.OUTPUT_DIR, "inference", dataset_name)
