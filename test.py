@@ -14,7 +14,7 @@ from ssd.utils.dist_util import synchronize
 from ssd.utils.logger import setup_logger
 
 
-def evaluation(cfg, ckpt, distributed):
+def evaluation(cfg, ckpt, distributed, check_9_labels=False):
     logger = logging.getLogger("SSD.inference")
 
     model = build_detection_model(cfg)
@@ -22,7 +22,7 @@ def evaluation(cfg, ckpt, distributed):
     device = torch.device(cfg.MODEL.DEVICE)
     model.to(device)
     checkpointer.load(ckpt, use_latest=ckpt is None)
-    do_evaluation(cfg, model, distributed, check_write_img=True)
+    do_evaluation(cfg, model, distributed, check_write_img=True, check_9_labels=check_9_labels)
 
 
 def main():
@@ -43,7 +43,8 @@ def main():
     )
 
     parser.add_argument("--output_dir", default="eval_results", type=str, help="The directory to store evaluation results.")
-
+    parser.add_argument('--check_9_labels', default=False, action='store_true', help="Allow the dataset of 9 labels (4 corners of 2 face including top and back of id card)")
+    
     parser.add_argument(
         "opts",
         help="Modify config options using the command-line",
@@ -77,7 +78,7 @@ def main():
         config_str = "\n" + cf.read()
         logger.info(config_str)
     logger.info("Running with config:\n{}".format(cfg))
-    evaluation(cfg, ckpt=args.ckpt, distributed=distributed)
+    evaluation(cfg, ckpt=args.ckpt, distributed=distributed, check_9_labels=args.check_9_labels)
 
 
 if __name__ == '__main__':
