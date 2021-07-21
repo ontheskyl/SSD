@@ -137,10 +137,10 @@ def parse_annotation(data_dir, image_list, output_annotation):
 
 if __name__ == "__main__":
 
-    #!python convert_pascalvoc_dataset/data_preprocess.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/cmnd_back/" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations/" 0.1
+    #!python convert_pascalvoc_dataset/data_preprocess_9_labels.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/cmnd/" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations/" 0.1
 
     # OR test on local:
-    # python convert_pascalvoc_dataset/data_preprocess.py "../cmnd_back/" "../Annotations/" 0.1
+    # python convert_pascalvoc_dataset/data_preprocess_9_labels.py "cmnd/" "Annotations/" 0.1
     data_dir, output_annotation_path, test_ratio = parse_inputs()
 
     if (not os.path.isdir(output_annotation_path)):
