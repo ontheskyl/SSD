@@ -220,6 +220,7 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, c
         sort_pair = sorted(pair)
         boxes = [element for _, element in sort_pair]
         labels = [element for element, _ in sort_pair]
+        labels_name = [class_names[i] for i in labels]
         
         crop = None
         if len(boxes) == 4:
@@ -231,25 +232,25 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, c
             images_missing_1_corner.append(os.path.join(os.path.basename(os.path.dirname(image_path)), image_name))
             count_error_1 += 1
             
-            if 1 not in labels:
+            if "top_left" not in ",".join(labels_name):
                 midpoint = np.add(get_center_bbox(boxes[0]), get_center_bbox(boxes[2])) / 2
                 y = int(2 * midpoint[1] - get_center_bbox(boxes[1])[1] + thresh)
                 x = int(2 * midpoint[0] - get_center_bbox(boxes[1])[0] + thresh)
                 TL = np.array([x, y, x, y])
                 crop = align_image(image, TL, boxes[0], boxes[1], boxes[2], True)
-            elif 2 not in labels:
+            elif "top_right" not in ",".join(labels_name):
                 midpoint = np.add(get_center_bbox(boxes[0]), get_center_bbox(boxes[1])) / 2
                 y = int(2 * midpoint[1] - get_center_bbox(boxes[2])[1] + thresh)
                 x = int(2 * midpoint[0] - get_center_bbox(boxes[2])[0] + thresh)
                 TR = np.array([x, y, x, y])
                 crop = align_image(image, boxes[0], TR, boxes[1], boxes[2], True)
-            elif 3 not in labels:
+            elif "bottom_right" not in ",".join(labels_name):
                 midpoint = np.add(get_center_bbox(boxes[2]), get_center_bbox(boxes[1])) / 2
                 y = int(2 * midpoint[1] - get_center_bbox(boxes[0])[1] + thresh)
                 x = int(2 * midpoint[0] - get_center_bbox(boxes[0])[0] + thresh)
                 BR = np.array([x, y, x, y])
                 crop = align_image(image, boxes[0], boxes[1], BR, boxes[2], True)
-            elif 4 not in labels:
+            elif "bottom_left" not in ",".join(labels_name):
                 midpoint = np.add(get_center_bbox(boxes[0]), get_center_bbox(boxes[2])) / 2
                 y = int(2 * midpoint[1] - get_center_bbox(boxes[1])[1] + thresh)
                 x = int(2 * midpoint[0] - get_center_bbox(boxes[1])[0] + thresh)
