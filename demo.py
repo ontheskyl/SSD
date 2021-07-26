@@ -213,7 +213,7 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, c
         
 
         drawn_image = draw_boxes(image, boxes, labels, scores, class_names).astype(np.uint8)
-
+        cv2.imwrite(os.path.join(output_dir, "result", os.path.basename(os.path.dirname(image_path)), image_name), drawn_image)
         # Crop image
         # image = image_show.copy()
         pair = zip(labels, boxes)
@@ -263,7 +263,6 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, c
 
         folder = os.path.basename(os.path.dirname(image_path))
         cv2.imwrite(os.path.join(output_dir, "crop", folder, image_name), crop)
-        cv2.imwrite(os.path.join(output_dir, "result", folder, image_name), drawn_image)
 
     print("Number of true images: {}".format(count_true))
     print("Number of 3 corner images: {}".format(count_error_1))
