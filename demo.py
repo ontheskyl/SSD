@@ -64,7 +64,7 @@ def align_image(image, top_left, top_right, bottom_right, bottom_left, expand_al
         center_point = np.array([x_val, y_val])
 
         distance_from_corner_to_center = distance_two_points(top_left_point, center_point)
-        increase_pixel = distance_from_corner_to_center / 10
+        increase_pixel = distance_from_corner_to_center / 4.5
         increase_ratio = (increase_pixel + distance_from_corner_to_center) / distance_from_corner_to_center
 
         top_left_point = (top_left_point - center_point) * increase_ratio + center_point
@@ -228,7 +228,7 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, c
         elif len(boxes) == 3:
             # Find fourth missed corner
             thresh = 0
-            images_missing_1_corner.append(image_name)
+            images_missing_1_corner.append(os.path.join(os.path.basename(os.path.dirname(image_path)), image_name))
             count_error_1 += 1
             
             if 1 not in labels:
@@ -257,7 +257,7 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, c
                 crop = align_image(image, boxes[0], boxes[1], boxes[2], BL, True)
         else:
             count_error_more_2 += 1
-            error_images.append(image_name)
+            error_images.append(os.path.join(os.path.basename(os.path.dirname(image_path)), image_name))
             print("Please take a photo again, number of detected corners is:", len(boxes))
             continue
 
