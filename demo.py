@@ -113,13 +113,16 @@ def process_duplicate_labels(labels, scores, boxes):
     return labels, scores, boxes
 
 @torch.no_grad()
-def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
+def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, check_9_labels=False):
     if dataset_type == "voc":
         class_names = VOCDataset.class_names
     elif dataset_type == 'coco':
         class_names = COCODataset.class_names
     elif dataset_type == "custom":
-        class_names = MyDataset.class_names
+        if (check_9_labels):
+            class_names = MyDataset.class_names_9_labels
+        else:
+            class_names = MyDataset.class_names_5_labels
     else:
         raise NotImplementedError('Not implemented now.')
     device = torch.device(cfg.MODEL.DEVICE)
@@ -131,11 +134,17 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
     weight_file = ckpt if ckpt else checkpointer.get_checkpoint_file()
     print('Loaded weights from {}'.format(weight_file))
 
-    image_paths = glob.glob(os.path.join(images_dir, '*.jpg'))
-    result_output_dir = os.path.join(output_dir, "result")
-    mkdir(result_output_dir)
-    output_dir_crop = os.path.join(output_dir, 'crop')
-    mkdir(output_dir_crop)
+    folder_path = [f for f in os.listdir(images_dir)]
+
+    image_paths = []
+    for folder in folder_path:
+
+        image_paths.extend(glob.glob(os.path.join(images_dir, folder, '*.jpg')))
+
+        result_output_dir = os.path.join(output_dir, "result/", folder)
+        mkdir(result_output_dir)
+        output_dir_crop = os.path.join(output_dir, 'crop/', folder)
+        mkdir(output_dir_crop)
 
     cpu_device = torch.device("cpu")
     transforms = build_transforms(cfg, is_train=False)
@@ -204,7 +213,6 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
         
 
         drawn_image = draw_boxes(image, boxes, labels, scores, class_names).astype(np.uint8)
-        cv2.imwrite(os.path.join(result_output_dir, image_name), drawn_image)
 
         # Crop image
         # image = image_show.copy()
@@ -253,8 +261,9 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type):
             print("Please take a photo again, number of detected corners is:", len(boxes))
             continue
 
-
-        cv2.imwrite(os.path.join(output_dir_crop, image_name), crop)
+        folder = os.path.basename(os.path.dirname(image_path))
+        cv2.imwrite(os.path.join(output_dir, "result", folder, image_name), crop)
+        cv2.imwrite(os.path.join(output_dir, "crop", folder, image_name), drawn_image)
 
     print("Number of true images: {}".format(count_true))
     print("Number of 3 corner images: {}".format(count_error_1))
@@ -278,6 +287,7 @@ def main():
     parser.add_argument("--images_dir", default='demo', type=str, help='Specify a image dir to do prediction.')
     parser.add_argument("--output_dir", default='demo/result/', type=str, help='Specify a image dir to save predicted images.')
     parser.add_argument("--dataset_type", default="custom", type=str, help='Specify dataset type. Currently support voc and coco.')
+    parser.add_argument("--check_9_labels", default=False, action="store_true", help='Allow the dataset of 9 labels (4 corners of 2 face including top and back of id card)')
 
     parser.add_argument(
         "opts",
@@ -303,7 +313,8 @@ def main():
              score_threshold=args.score_threshold,
              images_dir=args.images_dir,
              output_dir=args.output_dir,
-             dataset_type=args.dataset_type)
+             dataset_type=args.dataset_type,
+             check_9_labels=args.check_9_labels)
 
 
 if __name__ == '__main__':

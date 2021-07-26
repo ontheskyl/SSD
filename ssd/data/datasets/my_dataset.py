@@ -8,7 +8,12 @@ from ssd.utils.misc import reorient_image
 from ssd.structures.container import Container
 
 
+
 class MyDataset(torch.utils.data.Dataset):
+
+    class_names_5_labels = ('__background__', 'top_left', 'top_right', 'bottom_right', 'bottom_left')
+    class_names_9_labels = ('__background__', 'top_left_top', 'top_right_top', 'bottom_right_top', 'bottom_left_top', 
+                                                'top_left_back', 'top_right_back', 'bottom_right_back', 'bottom_left_back')
 
     def __init__(self, data_dir, split, transform=None, target_transform=None, keep_difficult=True, check_9_labels = False):
         """Dataset for VOC data.
@@ -17,10 +22,9 @@ class MyDataset(torch.utils.data.Dataset):
                 Annotations, ImageSets, JPEGImages, SegmentationClass, SegmentationObject.
         """
         if (check_9_labels):
-            self.class_names = ('__background__', 'top_left_top', 'top_right_top', 'bottom_right_top', 'bottom_left_top', 
-                                                'top_left_back', 'top_right_back', 'bottom_right_back', 'bottom_left_back')
+            self.class_names = self.class_names_9_labels
         else:
-            self.class_names = ('__background__', 'top_left', 'top_right', 'bottom_right', 'bottom_left')
+            self.class_names = self.class_names_5_labels
 
         self.data_dir = data_dir
         self.split = split
