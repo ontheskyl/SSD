@@ -37,7 +37,7 @@ if __name__ == "__main__":
     # !python convert_pascalvoc_dataset/build.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/data" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations"
 
     # OR test on local
-    # python convert_pascalvoc_dataset/build.py "../data" "../Annotations"
+    # python convert_pascalvoc_dataset/build.py "data/" "Annotations/"
     output_dir, annotation_dir = parse_inputs()
 
     if (not os.path.isdir(output_dir)):

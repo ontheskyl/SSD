@@ -112,6 +112,15 @@ class PASCALVOC07(object):
                 # create annotation file
                 self._create_annotation(image_idx, boxes)
 
+        fout.close()
+
+        if (phase == "test"):
+            fout = open(os.path.join(self._imagesets_dir, 'test_full.txt'), 'w')
+            for image_idx in range(1, n + 1):
+                fout.write('{:06}'.format(image_idx) + '\n')
+
+            fout.close()
+
         # with open("../data/dictionary_image.json", "a") as outfile: 
         #     json.dump(dictionary_image_id, outfile)
         #     outfile.close()
