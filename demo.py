@@ -94,7 +94,35 @@ def image_processing(image):
     dst = Image.fromarray(dst)
     return np.asarray(dst)
 
-def process_duplicate_labels(labels, scores, boxes):
+def process_duplicate_labels(labels, scores, boxes, check_9_labels):
+
+    # Delete duplicate 2 sides of id card
+    if (check_9_labels):
+
+        group_items = np.array([(i - 1)//4 for i in labels]) # There are 8 labels including (TL, TR, BR, BL) for each side of id card
+
+        list_indices_top = np.where(group_items==0)
+        list_indices_back = np.where(group_items==1)
+        num_top = np.count_nonzero(group_items==0)
+        num_back = np.count_nonzero(group_items==1)
+
+        if (num_top > num_back):
+            list_del_indices = list_indices_back
+        elif (num_top < num_back):
+            list_del_indices = list_indices_top
+        else:
+            value_top = np.take(scores, list_indices_top)
+            value_back = np.take(scores, list_indices_top)
+            if (np.sum(value_top) > np.sum(value_back)):
+                list_del_indices = list_indices_back
+            else:
+                list_del_indices = list_indices_top
+
+        labels = np.delete(labels, list_del_indices)
+        scores = np.delete(scores, list_del_indices)
+        boxes = np.delete(boxes, list_del_indices, 0)
+
+    # Delete duplicate of labels for one side
     list_duplicate = [item for item, count in collections.Counter(labels).items() if count > 1]
         
     for dup in list_duplicate:
@@ -105,10 +133,10 @@ def process_duplicate_labels(labels, scores, boxes):
                 max_conf_indice = indice
                 
         list_indices.remove(max_conf_indice)
-        for index in sorted(list_indices, reverse=True):
-            labels = np.delete(labels, index)
-            scores = np.delete(scores, index)
-            boxes = np.delete(boxes, index, 0)
+        
+        labels = np.delete(labels, list_indices)
+        scores = np.delete(scores, list_indices)
+        boxes = np.delete(boxes, list_indices, 0)
 
     return labels, scores, boxes
 
@@ -204,7 +232,7 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, c
         )
         print('({:04d}/{:04d}) {}: {}'.format(i + 1, len(image_paths), image_name, meters))
         
-        labels, scores, boxes = process_duplicate_labels(labels, scores, boxes)
+        labels, scores, boxes = process_duplicate_labels(labels, scores, boxes, check_9_labels)
 
         # for i in range(len(boxes)):
         #     for k in range(len(boxes[i])):
