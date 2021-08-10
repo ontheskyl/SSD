@@ -2,10 +2,10 @@
 
 import os
 import sys
+from argparse import ArgumentParser
 from easydict import EasyDict as edict
 
 from pascal_voc.pascal_voc import PASCALVOC07
-from argparse import ArgumentParser
 
 config = edict()
 
@@ -20,9 +20,13 @@ config.pose = "Unspecified"
 config.database = "CMND_BACK"
 config.depth = "3"
 
+
 def parse_inputs():
+
     """ Parser function to take care of the inputs """
+
     parser = ArgumentParser(description='Argument: python data_preprocess.py <annotation_path> <output_direction>')
+    
     parser.add_argument('annotation_dir', default="Annotations", type=str,
                         help='Enter the path of annotation files.')
     parser.add_argument('output_dir', type=str,
@@ -38,6 +42,7 @@ if __name__ == "__main__":
 
     # OR test on local
     # python convert_pascalvoc_dataset/build.py "data/" "Annotations/"
+
     output_dir, annotation_dir = parse_inputs()
 
     if (not os.path.isdir(output_dir)):

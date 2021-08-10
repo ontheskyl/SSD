@@ -15,7 +15,7 @@ If you want to add your custom components, please see [DEVELOP_GUIDE.md](DEVELOP
 
 + Dữ liệu đầu vào:
 
-Khởi tạo 1 folder, trong đó chứa 2 folder nhỏ lần lượt cho chứng minh thư mặt trước và chứng minh thư mặt sau, mỗi folder nhỏ chứa đầy đủ các ảnh và file json cùng tên tương ứng
+Khởi tạo 1 folder, trong đó chứa 2 folder nhỏ lần lượt cho chứng minh thư và căn cước công dân (cmnd, cccd). Mỗi folder nhỏ này chứa 2 folder con lần lượt là mặt trước và mặt sau (back, top), mỗi folder nhỏ chứa đầy đủ các ảnh và file json cùng tên tương ứng
 
 + Chạy file data_preprocess.py:
 

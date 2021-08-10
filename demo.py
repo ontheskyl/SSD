@@ -1,26 +1,25 @@
-import glob
-import os
-import time
-
-import torch
-import cv2
-from PIL import Image
 from vizer.draw import draw_boxes
+from PIL import Image
+import numpy as np
+import collections
+import argparse
+import torch
+import glob
+import time
+import cv2
+import os
 
 from ssd.config import cfg
 from ssd.data.datasets import COCODataset, VOCDataset, MyDataset
-import argparse
-import numpy as np
-
 from ssd.data.transforms import build_transforms
 from ssd.modeling.detector import build_detection_model
 from ssd.utils import mkdir
 from ssd.utils.checkpoint import CheckPointer
-import collections
 
 
 def distance_two_points(point_1, point_2):
     return np.sqrt(np.power(point_1[0] - point_2[0], 2) + np.power(point_1[1] - point_2[1], 2))
+
 
 def get_center_bbox(box):
     a = (box[0] + box[2]) / 2
@@ -43,6 +42,7 @@ def check_point(point, image):
         point[1] = h - 1
 
     return point
+
 
 def perspective_transform(image, source_points):
     dest_points = np.float32([[0, 0], [500, 0], [500, 300], [0, 300]])
@@ -94,6 +94,7 @@ def image_processing(image):
     dst = Image.fromarray(dst)
     return np.asarray(dst)
 
+
 def process_duplicate_labels(labels, scores, boxes, check_9_labels):
 
     # Delete duplicate 2 sides of id card
@@ -140,6 +141,7 @@ def process_duplicate_labels(labels, scores, boxes, check_9_labels):
 
     return labels, scores, boxes
 
+
 @torch.no_grad()
 def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, check_9_labels=False):
     if dataset_type == "voc":
@@ -162,12 +164,18 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, c
     weight_file = ckpt if ckpt else checkpointer.get_checkpoint_file()
     print('Loaded weights from {}'.format(weight_file))
 
-    folder_path = [f for f in os.listdir(images_dir)]
+    types_id = ["cccd", "cmnd"]
+    types_face = ["back", "top"]
+    
+    folder_dirs = []
+    for id in types_id:
+        for face in types_face:
+            folder_dirs.append(os.path.join(id + "/", face))
 
     image_paths = []
-    for folder in folder_path:
+    for folder in folder_dirs:
 
-        image_paths.extend(glob.glob(os.path.join(images_dir, folder, '*.jpg')))
+        image_paths.extend(glob.glob(os.path.join(images_dir + "/", folder + "/", '*.jpg')))
 
         result_output_dir = os.path.join(output_dir, "result/", folder)
         mkdir(result_output_dir)
@@ -176,20 +184,20 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, c
 
     cpu_device = torch.device("cpu")
     transforms = build_transforms(cfg, is_train=False)
-    model.eval()
 
+    model.eval()
 
     count_true = 0
     count_error_1 = 0
     count_error_more_2 = 0
-
     error_images = []
     images_missing_1_corner = []
 
     for i, image_path in enumerate(image_paths):
-        start = time.time()
-        image_name = os.path.basename(image_path)
 
+        start = time.time()
+
+        image_name = os.path.basename(image_path)
         image = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
         # image_show = image.copy()
         # cv2.cvtColor(image_show, cv2.COLOR_BGR2RGB)
@@ -204,11 +212,10 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, c
         
         # image = cv2.resize(image, (int(width / ratio_resize), int(height / ratio_resize)))
 
+        preprocessed_image = image_processing(image)
 
-        dst = image_processing(image)
-
-        height, width = dst.shape[:2]
-        images = transforms(dst)[0].unsqueeze(0)
+        height, width = preprocessed_image.shape[:2]
+        images = transforms(preprocessed_image)[0].unsqueeze(0)
         load_time = time.time() - start
 
         start = time.time()
@@ -239,18 +246,15 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, c
         #         boxes[i][k] -= pixel_border
         #         boxes[i][k] *= ratio_resize
         
+        drawn_bounding_box_image = draw_boxes(image, boxes, labels, scores, class_names).astype(np.uint8)
 
-        drawn_image = draw_boxes(image, boxes, labels, scores, class_names).astype(np.uint8)
-        cv2.imwrite(os.path.join(output_dir, "result", os.path.basename(os.path.dirname(image_path)), image_name), drawn_image)
         # Crop image
-        # image = image_show.copy()
         pair = zip(labels, boxes)
         sort_pair = sorted(pair)
         boxes = [element for _, element in sort_pair]
         labels = [element for element, _ in sort_pair]
         labels_name = [class_names[i] for i in labels]
         
-        crop = None
         if len(boxes) == 4:
             count_true += 1
             crop = align_image(image, boxes[0], boxes[1], boxes[2], boxes[3], True)
@@ -290,19 +294,22 @@ def run_demo(cfg, ckpt, score_threshold, images_dir, output_dir, dataset_type, c
             print("Please take a photo again, number of detected corners is:", len(boxes))
             continue
 
-        folder = os.path.basename(os.path.dirname(image_path))
-        cv2.imwrite(os.path.join(output_dir, "crop", folder, image_name), crop)
+        face_type = os.path.basename(os.path.dirname(image_path))
+        id_type = os.path.basename(os.path.dirname(os.path.dirname(image_path)))
+        cv2.imwrite(os.path.join(output_dir, "crop", face_type, id_type, image_name), crop)
+        cv2.imwrite(os.path.join(output_dir, "result", face_type, id_type, image_name), drawn_bounding_box_image)
 
     print("Number of true images: {}".format(count_true))
     print("Number of 3 corner images: {}".format(count_error_1))
     print("Number of 2 corner images: {}".format(count_error_more_2))
-
     print("Image have 3 corners: {}".format(images_missing_1_corner))
     print("Error Images: {}".format(error_images))
 
 
 def main():
+
     parser = argparse.ArgumentParser(description="SSD Demo.")
+
     parser.add_argument(
         "--config-file",
         default="",
@@ -324,8 +331,7 @@ def main():
         nargs=argparse.REMAINDER,
     )
     args = parser.parse_args()
-    print(args)
-
+    
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.freeze()
