@@ -38,10 +38,10 @@ def parse_inputs():
 
 if __name__ == "__main__":
 
-    # !python convert_pascalvoc_dataset/build.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/data" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations"
+    # !python convert_pascalvoc_dataset/build.py "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/Annotations" "/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/data"
 
     # OR test on local
-    # python convert_pascalvoc_dataset/build.py "data/" "Annotations/"
+    # python convert_pascalvoc_dataset/build.py "Annotations/" "data/"
 
     output_dir, annotation_dir = parse_inputs()
 
