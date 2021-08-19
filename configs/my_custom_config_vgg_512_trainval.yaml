@@ -24,4 +24,4 @@ TEST:
   NMS_THRESHOLD: 0.6
   CONFIDENCE_THRESHOLD: 0.3
 
-OUTPUT_DIR: '/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/models/vgg_ssd512_30k_4cls'
+OUTPUT_DIR: '/content/drive/MyDrive/Colab Notebooks/Sunshine Tech/models/vgg_ssd512_30k_4cls_back_top'
